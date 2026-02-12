@@ -1,0 +1,34 @@
+name: CI/CD Pipeline - EPS Backend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  pipeline:
+    # 1. Apunta al NUEVO reusable que soporta Docker Compose
+    # (Asegúrate de que el nombre coincida con el que crearemos a continuación)
+    uses: my-banking-app/ci-templates/.github/workflows/nest-db-ci-cd.yml@v1.1.7
+    with:
+      service-name: "eps-backend"  # Nombre de la carpeta y contenedores
+      docker-image-name: "eps-backend"
+      service-port: "3000"         # Puerto EXTERNO (El que abrirás en el VPS)
+      sonar-project-key: "my-banking-app_eps-backend"
+      node-version: "20"
+    secrets:
+      # Credenciales de Infraestructura
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+      VPS_PRIVATE_KEY: ${{ secrets.VPS_PRIVATE_KEY }}
+      
+      # Variables para el .env (Solo datos, no configuración de red)
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      API_KEY: ${{ secrets.API_KEY }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
