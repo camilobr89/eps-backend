@@ -9,7 +9,7 @@ on:
 
 jobs:
   pipeline:
-    uses: my-banking-app/ci-templates/.github/workflows/nest-db-ci-cd.yml@v1.1.8
+    uses: my-banking-app/ci-templates/.github/workflows/nest-db-ci-cd.yml@v1.1.9
     with:
       service-name: "EPS Backend"
       docker-image-name: "eps-backend"
