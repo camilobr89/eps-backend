@@ -10,7 +10,7 @@ export class HealthService {
   constructor(private readonly prisma: PrismaService) {
     this.redis = new Redis({
       host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379', 10),
+      port: Number.parseInt(process.env.REDIS_PORT || '6379', 10),
       maxRetriesPerRequest: 1,
       connectTimeout: 3000,
     });
@@ -20,7 +20,8 @@ export class HealthService {
     const database = await this.checkDatabase();
     const redis = await this.checkRedis();
 
-    const status = database === 'connected' && redis === 'connected' ? 'ok' : 'degraded';
+    const status =
+      database === 'connected' && redis === 'connected' ? 'ok' : 'degraded';
 
     return {
       status,
