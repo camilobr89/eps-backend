@@ -1,18 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus } from '@nestjs/common';
-import { HealthController } from '../../../../src/modules/health/health.controller';
-import { HealthService } from '../../../../src/modules/health/health.service';
+import { Response } from 'express';
+import { HealthController } from '@/modules/health/health.controller';
+import { HealthService } from '@/modules/health/health.service';
+
+interface MockResponse {
+  status: jest.Mock;
+  json: jest.Mock;
+}
+
+const createMockResponse = (): MockResponse => {
+  const res: MockResponse = {
+    status: jest.fn(),
+    json: jest.fn(),
+  };
+  res.status.mockReturnValue(res);
+  res.json.mockReturnValue(res);
+  return res;
+};
 
 describe('HealthController', () => {
   let controller: HealthController;
-  let healthService: HealthService;
-
-  const mockResponse = () => {
-    const res: any = {};
-    res.status = jest.fn().mockReturnValue(res);
-    res.json = jest.fn().mockReturnValue(res);
-    return res;
-  };
 
   const mockHealthService = {
     check: jest.fn(),
@@ -27,7 +35,6 @@ describe('HealthController', () => {
     }).compile();
 
     controller = module.get<HealthController>(HealthController);
-    healthService = module.get<HealthService>(HealthService);
   });
 
   it('should be defined', () => {
@@ -43,9 +50,9 @@ describe('HealthController', () => {
         timestamp: new Date().toISOString(),
       };
       mockHealthService.check.mockResolvedValue(healthResult);
-      const res = mockResponse();
+      const res = createMockResponse();
 
-      await controller.check(res);
+      await controller.check(res as unknown as Response);
 
       expect(mockHealthService.check).toHaveBeenCalledTimes(1);
       expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
@@ -60,9 +67,9 @@ describe('HealthController', () => {
         timestamp: new Date().toISOString(),
       };
       mockHealthService.check.mockResolvedValue(healthResult);
-      const res = mockResponse();
+      const res = createMockResponse();
 
-      await controller.check(res);
+      await controller.check(res as unknown as Response);
 
       expect(res.status).toHaveBeenCalledWith(HttpStatus.SERVICE_UNAVAILABLE);
       expect(res.json).toHaveBeenCalledWith(healthResult);
@@ -76,9 +83,9 @@ describe('HealthController', () => {
         timestamp: new Date().toISOString(),
       };
       mockHealthService.check.mockResolvedValue(healthResult);
-      const res = mockResponse();
+      const res = createMockResponse();
 
-      await controller.check(res);
+      await controller.check(res as unknown as Response);
 
       expect(res.status).toHaveBeenCalledWith(HttpStatus.SERVICE_UNAVAILABLE);
       expect(res.json).toHaveBeenCalledWith(healthResult);
@@ -91,9 +98,9 @@ describe('HealthController', () => {
         redis: 'connected',
         timestamp: new Date().toISOString(),
       });
-      const res = mockResponse();
+      const res = createMockResponse();
 
-      await controller.check(res);
+      await controller.check(res as unknown as Response);
 
       expect(mockHealthService.check).toHaveBeenCalledTimes(1);
     });

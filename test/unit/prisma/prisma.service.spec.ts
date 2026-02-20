@@ -5,20 +5,22 @@ jest.mock('@prisma/adapter-pg', () => ({
   PrismaPg: jest.fn().mockImplementation(() => ({})),
 }));
 
-jest.mock('@prisma/client', () => {
-  const actual = jest.requireActual('@prisma/client');
-  return {
-    ...actual,
-    PrismaClient: class MockPrismaClient {
-      constructor() {}
-      $connect = jest.fn().mockResolvedValue(undefined);
-      $disconnect = jest.fn().mockResolvedValue(undefined);
-    },
-  };
-});
+jest.mock('@prisma/client', () => ({
+  PrismaClient: class MockPrismaClient {
+    $connect = jest.fn().mockResolvedValue(undefined);
+    $disconnect = jest.fn().mockResolvedValue(undefined);
+  },
+}));
+
+interface TestablePrismaService {
+  $connect: jest.Mock;
+  $disconnect: jest.Mock;
+  onModuleInit: () => Promise<void>;
+  onModuleDestroy: () => Promise<void>;
+}
 
 describe('PrismaService', () => {
-  let service: PrismaService;
+  let service: TestablePrismaService;
 
   beforeEach(async () => {
     process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/testdb';
@@ -27,7 +29,7 @@ describe('PrismaService', () => {
       providers: [PrismaService],
     }).compile();
 
-    service = module.get<PrismaService>(PrismaService);
+    service = module.get(PrismaService);
   });
 
   afterEach(() => {
@@ -40,17 +42,15 @@ describe('PrismaService', () => {
 
   describe('onModuleInit', () => {
     it('should call $connect', async () => {
-      const connectSpy = jest.spyOn(service, '$connect').mockResolvedValue();
       await service.onModuleInit();
-      expect(connectSpy).toHaveBeenCalledTimes(1);
+      expect(service.$connect).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('onModuleDestroy', () => {
     it('should call $disconnect', async () => {
-      const disconnectSpy = jest.spyOn(service, '$disconnect').mockResolvedValue();
       await service.onModuleDestroy();
-      expect(disconnectSpy).toHaveBeenCalledTimes(1);
+      expect(service.$disconnect).toHaveBeenCalledTimes(1);
     });
   });
 });

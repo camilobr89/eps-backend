@@ -20,7 +20,8 @@ export class HealthService {
     const database = await this.checkDatabase();
     const redis = await this.checkRedis();
 
-    const status = database === 'connected' && redis === 'connected' ? 'ok' : 'degraded';
+    const status =
+      database === 'connected' && redis === 'connected' ? 'ok' : 'degraded';
 
     return {
       status,

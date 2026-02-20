@@ -1,16 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { HealthService } from '../../../../src/modules/health/health.service';
-import { PrismaService } from '../../../../src/prisma/prisma.service';
+import { HealthService } from '@/modules/health/health.service';
+import { PrismaService } from '@/prisma/prisma.service';
+
+const mockPing = jest.fn().mockResolvedValue('PONG');
 
 jest.mock('ioredis', () => {
   return jest.fn().mockImplementation(() => ({
-    ping: jest.fn().mockResolvedValue('PONG'),
+    ping: mockPing,
   }));
 });
 
 describe('HealthService', () => {
   let service: HealthService;
-  let prisma: PrismaService;
 
   const mockPrismaService = {
     $queryRaw: jest.fn().mockResolvedValue([{ '?column?': 1 }]),
@@ -18,6 +19,7 @@ describe('HealthService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    mockPing.mockResolvedValue('PONG');
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -27,7 +29,6 @@ describe('HealthService', () => {
     }).compile();
 
     service = module.get<HealthService>(HealthService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   it('should be defined', () => {
@@ -51,7 +52,9 @@ describe('HealthService', () => {
     });
 
     it('should return "degraded" when database is disconnected', async () => {
-      mockPrismaService.$queryRaw.mockRejectedValueOnce(new Error('Connection refused'));
+      mockPrismaService.$queryRaw.mockRejectedValueOnce(
+        new Error('Connection refused'),
+      );
 
       const result = await service.check();
 
@@ -61,9 +64,7 @@ describe('HealthService', () => {
     });
 
     it('should return "degraded" when redis is disconnected', async () => {
-      const Redis = require('ioredis');
-      const redisInstance = Redis.mock.results[Redis.mock.results.length - 1].value;
-      redisInstance.ping.mockRejectedValueOnce(new Error('Connection refused'));
+      mockPing.mockRejectedValueOnce(new Error('Connection refused'));
 
       const result = await service.check();
 
@@ -74,9 +75,7 @@ describe('HealthService', () => {
 
     it('should return "degraded" when both services are disconnected', async () => {
       mockPrismaService.$queryRaw.mockRejectedValueOnce(new Error('DB down'));
-      const Redis = require('ioredis');
-      const redisInstance = Redis.mock.results[Redis.mock.results.length - 1].value;
-      redisInstance.ping.mockRejectedValueOnce(new Error('Redis down'));
+      mockPing.mockRejectedValueOnce(new Error('Redis down'));
 
       const result = await service.check();
 
@@ -86,9 +85,7 @@ describe('HealthService', () => {
     });
 
     it('should return "disconnected" for redis when ping returns unexpected value', async () => {
-      const Redis = require('ioredis');
-      const redisInstance = Redis.mock.results[Redis.mock.results.length - 1].value;
-      redisInstance.ping.mockResolvedValueOnce('UNEXPECTED');
+      mockPing.mockResolvedValueOnce('UNEXPECTED');
 
       const result = await service.check();
 
