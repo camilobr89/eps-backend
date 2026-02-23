@@ -7,6 +7,7 @@ import { RedisModule } from './common/redis/redis.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { EpsProvidersModule } from './modules/eps-providers/eps-providers.module';
 import { FamilyMembersModule } from './modules/family-members/family-members.module';
+import { AuthorizationsModule } from './modules/authorizations/authorizations.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { FamilyMembersModule } from './modules/family-members/family-members.mod
     AuthModule,
     EpsProvidersModule,
     FamilyMembersModule,
+    AuthorizationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
