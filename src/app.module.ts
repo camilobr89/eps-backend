@@ -9,6 +9,7 @@ import { EpsProvidersModule } from './modules/eps-providers/eps-providers.module
 import { FamilyMembersModule } from './modules/family-members/family-members.module';
 import { AuthorizationsModule } from './modules/authorizations/authorizations.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AppointmentsModule } from './modules/appointments/appointments.module';
     FamilyMembersModule,
     AuthorizationsModule,
     AppointmentsModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
