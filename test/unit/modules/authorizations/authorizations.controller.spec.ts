@@ -29,9 +29,7 @@ describe('AuthorizationsController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthorizationsController],
-      providers: [
-        { provide: AuthorizationsService, useValue: mockService },
-      ],
+      providers: [{ provide: AuthorizationsService, useValue: mockService }],
     }).compile();
 
     controller = module.get<AuthorizationsController>(AuthorizationsController);
@@ -101,7 +99,9 @@ describe('AuthorizationsController', () => {
 
   describe('remove', () => {
     it('should call service.remove with id and userId', async () => {
-      mockService.remove.mockResolvedValue({ message: 'Authorization deleted successfully' });
+      mockService.remove.mockResolvedValue({
+        message: 'Authorization deleted successfully',
+      });
 
       const result = await controller.remove(authId, user);
 

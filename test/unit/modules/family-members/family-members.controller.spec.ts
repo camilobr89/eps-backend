@@ -28,9 +28,7 @@ describe('FamilyMembersController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [FamilyMembersController],
-      providers: [
-        { provide: FamilyMembersService, useValue: mockService },
-      ],
+      providers: [{ provide: FamilyMembersService, useValue: mockService }],
     }).compile();
 
     controller = module.get<FamilyMembersController>(FamilyMembersController);
@@ -69,7 +67,10 @@ describe('FamilyMembersController', () => {
 
       const result = await controller.findOne('member-uuid-1', user);
 
-      expect(mockService.findOne).toHaveBeenCalledWith('member-uuid-1', user.id);
+      expect(mockService.findOne).toHaveBeenCalledWith(
+        'member-uuid-1',
+        user.id,
+      );
       expect(result).toEqual(mockMember);
     });
   });

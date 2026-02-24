@@ -27,14 +27,14 @@ export class AuthorizationsService {
     const { services, familyMemberId, ...fields } = dto;
 
     return this.prisma.authorization.create({
-        data: {
-          ...this.mapDtoToData(fields),
-          familyMemberId,
-          documentType: dto.documentType,
-          services: this.buildServicesCreate(services),
-        },
-        include: AUTHORIZATION_INCLUDES,
-      });
+      data: {
+        ...this.mapDtoToData(fields),
+        familyMemberId,
+        documentType: dto.documentType,
+        services: this.buildServicesCreate(services),
+      },
+      include: AUTHORIZATION_INCLUDES,
+    });
   }
 
   async findAll(userId: string, filters: FilterAuthorizationDto) {
@@ -108,7 +108,9 @@ export class AuthorizationsService {
       documentType: dto.documentType,
       requestNumber: dto.requestNumber,
       issuingDate: dto.issuingDate ? new Date(dto.issuingDate) : undefined,
-      expirationDate: dto.expirationDate ? new Date(dto.expirationDate) : undefined,
+      expirationDate: dto.expirationDate
+        ? new Date(dto.expirationDate)
+        : undefined,
       diagnosisCode: dto.diagnosisCode,
       diagnosisDescription: dto.diagnosisDescription,
       patientLocation: dto.patientLocation,
@@ -130,7 +132,14 @@ export class AuthorizationsService {
     };
   }
 
-  private mapServices(services: { serviceCode: string; quantity?: number; serviceName: string; serviceType?: string }[]) {
+  private mapServices(
+    services: {
+      serviceCode: string;
+      quantity?: number;
+      serviceName: string;
+      serviceType?: string;
+    }[],
+  ) {
     return services.map((s) => ({
       serviceCode: s.serviceCode,
       quantity: s.quantity ?? 1,
@@ -144,19 +153,28 @@ export class AuthorizationsService {
     return { create: this.mapServices(services) };
   }
 
-  private buildWhereClause(memberIds: string[], filters: FilterAuthorizationDto): Prisma.AuthorizationWhereInput {
+  private buildWhereClause(
+    memberIds: string[],
+    filters: FilterAuthorizationDto,
+  ): Prisma.AuthorizationWhereInput {
     const where: Prisma.AuthorizationWhereInput = {
-      familyMemberId: { in: filters.familyMemberId ? [filters.familyMemberId] : memberIds },
+      familyMemberId: {
+        in: filters.familyMemberId ? [filters.familyMemberId] : memberIds,
+      },
     };
 
     if (filters.status) where.status = filters.status;
     if (filters.priority) where.priority = filters.priority;
-    if (filters.expiringBefore) where.expirationDate = { lte: new Date(filters.expiringBefore) };
+    if (filters.expiringBefore)
+      where.expirationDate = { lte: new Date(filters.expiringBefore) };
 
     return where;
   }
 
-  private async verifyFamilyMemberOwnership(familyMemberId: string, userId: string) {
+  private async verifyFamilyMemberOwnership(
+    familyMemberId: string,
+    userId: string,
+  ) {
     const member = await this.prisma.familyMember.findFirst({
       where: { id: familyMemberId, userId },
     });
@@ -175,9 +193,9 @@ export class AuthorizationsService {
     return members.map((m) => m.id);
   }
 
-  private applyAutoExpiration<T extends { expirationDate: Date | null; status: string }>(
-    authorizations: T[],
-  ): T[] {
+  private applyAutoExpiration<
+    T extends { expirationDate: Date | null; status: string },
+  >(authorizations: T[]): T[] {
     const now = new Date();
 
     return authorizations.map((auth) => {
