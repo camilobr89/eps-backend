@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { EpsProvidersModule } from './modules/eps-providers/eps-providers.module';
 import { FamilyMembersModule } from './modules/family-members/family-members.module';
 import { AuthorizationsModule } from './modules/authorizations/authorizations.module';
+import { AppointmentsModule } from './modules/appointments/appointments.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AuthorizationsModule } from './modules/authorizations/authorizations.mo
     EpsProvidersModule,
     FamilyMembersModule,
     AuthorizationsModule,
+    AppointmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
