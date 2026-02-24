@@ -47,7 +47,12 @@ const mockAppointment = {
 const mockAppointmentWithAuth = {
   ...mockAppointment,
   authorizationId,
-  authorization: { id: authorizationId, documentType: 'orden_medica', status: 'scheduled', diagnosisDescription: 'Asma' },
+  authorization: {
+    id: authorizationId,
+    documentType: 'orden_medica',
+    status: 'scheduled',
+    diagnosisDescription: 'Asma',
+  },
 };
 
 const createDto = {
@@ -113,7 +118,9 @@ describe('AppointmentsService', () => {
     it('should throw NotFoundException if family member does not belong to user', async () => {
       mockPrisma.familyMember.findFirst.mockResolvedValue(null);
 
-      await expect(service.create(userId, createDto)).rejects.toThrow(NotFoundException);
+      await expect(service.create(userId, createDto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException if authorization does not belong to user', async () => {
@@ -151,7 +158,9 @@ describe('AppointmentsService', () => {
     it('should return empty array if filtering by unowned family member', async () => {
       mockPrisma.familyMember.findMany.mockResolvedValue([{ id: memberId }]);
 
-      const result = await service.findAll(userId, { familyMemberId: 'other-member' });
+      const result = await service.findAll(userId, {
+        familyMemberId: 'other-member',
+      });
 
       expect(result).toEqual([]);
     });
@@ -190,7 +199,10 @@ describe('AppointmentsService', () => {
       mockPrisma.familyMember.findMany.mockResolvedValue([{ id: memberId }]);
       mockPrisma.appointment.findMany.mockResolvedValue([]);
 
-      await service.findAll(userId, { dateFrom: '2026-03-01', dateTo: '2026-03-31' });
+      await service.findAll(userId, {
+        dateFrom: '2026-03-01',
+        dateTo: '2026-03-31',
+      });
 
       const whereArg = mockPrisma.appointment.findMany.mock.calls[0][0].where;
       expect(whereArg.appointmentDate.gte).toEqual(new Date('2026-03-01'));
@@ -239,7 +251,9 @@ describe('AppointmentsService', () => {
     it('should throw NotFoundException if appointment does not exist', async () => {
       mockPrisma.appointment.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne(appointmentId, userId)).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(appointmentId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException if appointment belongs to another user', async () => {
@@ -248,7 +262,9 @@ describe('AppointmentsService', () => {
         familyMember: { ...mockAppointment.familyMember, userId: 'other-user' },
       });
 
-      await expect(service.findOne(appointmentId, userId)).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(appointmentId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -282,10 +298,15 @@ describe('AppointmentsService', () => {
     it('should verify family member ownership when changing familyMemberId', async () => {
       const newMemberId = 'new-member-uuid';
       mockPrisma.appointment.findUnique.mockResolvedValue(mockAppointment);
-      mockPrisma.familyMember.findFirst.mockResolvedValue({ id: newMemberId, userId });
+      mockPrisma.familyMember.findFirst.mockResolvedValue({
+        id: newMemberId,
+        userId,
+      });
       mockPrisma.appointment.update.mockResolvedValue(mockAppointment);
 
-      await service.update(appointmentId, userId, { familyMemberId: newMemberId });
+      await service.update(appointmentId, userId, {
+        familyMemberId: newMemberId,
+      });
 
       expect(mockPrisma.familyMember.findFirst).toHaveBeenCalledWith({
         where: { id: newMemberId, userId },
@@ -324,7 +345,9 @@ describe('AppointmentsService', () => {
     });
 
     it('should revert authorization status to pending when deleting linked appointment', async () => {
-      mockPrisma.appointment.findUnique.mockResolvedValue(mockAppointmentWithAuth);
+      mockPrisma.appointment.findUnique.mockResolvedValue(
+        mockAppointmentWithAuth,
+      );
       mockPrisma.authorization.update.mockResolvedValue({});
       mockPrisma.appointment.delete.mockResolvedValue(mockAppointmentWithAuth);
 
@@ -339,7 +362,9 @@ describe('AppointmentsService', () => {
     it('should throw NotFoundException if appointment not found', async () => {
       mockPrisma.appointment.findUnique.mockResolvedValue(null);
 
-      await expect(service.remove(appointmentId, userId)).rejects.toThrow(NotFoundException);
+      await expect(service.remove(appointmentId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

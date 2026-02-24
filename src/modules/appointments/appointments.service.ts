@@ -122,7 +122,9 @@ export class AppointmentsService {
         familyMemberId: dto.familyMemberId,
         authorizationId: dto.authorizationId,
         authorizationServiceId: dto.authorizationServiceId,
-        appointmentDate: dto.appointmentDate ? new Date(dto.appointmentDate) : undefined,
+        appointmentDate: dto.appointmentDate
+          ? new Date(dto.appointmentDate)
+          : undefined,
         location: dto.location,
         doctorName: dto.doctorName,
         specialty: dto.specialty,
@@ -138,7 +140,10 @@ export class AppointmentsService {
 
     // Si estaba vinculada a una autorización, revertir status a pending
     if (appointment.authorizationId) {
-      await this.updateAuthorizationStatus(appointment.authorizationId, 'pending');
+      await this.updateAuthorizationStatus(
+        appointment.authorizationId,
+        'pending',
+      );
     }
 
     await this.prisma.appointment.delete({ where: { id } });
@@ -148,7 +153,10 @@ export class AppointmentsService {
 
   // --- Métodos privados reutilizables ---
 
-  private async verifyFamilyMemberOwnership(familyMemberId: string, userId: string) {
+  private async verifyFamilyMemberOwnership(
+    familyMemberId: string,
+    userId: string,
+  ) {
     const member = await this.prisma.familyMember.findFirst({
       where: { id: familyMemberId, userId },
     });
@@ -158,7 +166,10 @@ export class AppointmentsService {
     }
   }
 
-  private async verifyAuthorizationOwnership(authorizationId: string, userId: string) {
+  private async verifyAuthorizationOwnership(
+    authorizationId: string,
+    userId: string,
+  ) {
     const authorization = await this.prisma.authorization.findUnique({
       where: { id: authorizationId },
       include: { familyMember: { select: { userId: true } } },
@@ -169,10 +180,13 @@ export class AppointmentsService {
     }
   }
 
-  private async updateAuthorizationStatus(authorizationId: string, status: string) {
+  private async updateAuthorizationStatus(
+    authorizationId: string,
+    status: 'pending' | 'scheduled',
+  ) {
     await this.prisma.authorization.update({
       where: { id: authorizationId },
-      data: { status: status as any },
+      data: { status },
     });
   }
 
@@ -185,9 +199,14 @@ export class AppointmentsService {
     return members.map((m) => m.id);
   }
 
-  private buildWhereClause(memberIds: string[], filters: FilterAppointmentDto): Prisma.AppointmentWhereInput {
+  private buildWhereClause(
+    memberIds: string[],
+    filters: FilterAppointmentDto,
+  ): Prisma.AppointmentWhereInput {
     const where: Prisma.AppointmentWhereInput = {
-      familyMemberId: { in: filters.familyMemberId ? [filters.familyMemberId] : memberIds },
+      familyMemberId: {
+        in: filters.familyMemberId ? [filters.familyMemberId] : memberIds,
+      },
     };
 
     if (filters.status) where.status = filters.status;
@@ -195,10 +214,14 @@ export class AppointmentsService {
     if (filters.dateFrom || filters.dateTo) {
       where.appointmentDate = {};
       if (filters.dateFrom) {
-        (where.appointmentDate as Prisma.DateTimeFilter).gte = new Date(filters.dateFrom);
+        (where.appointmentDate as Prisma.DateTimeFilter).gte = new Date(
+          filters.dateFrom,
+        );
       }
       if (filters.dateTo) {
-        (where.appointmentDate as Prisma.DateTimeFilter).lte = new Date(filters.dateTo);
+        (where.appointmentDate as Prisma.DateTimeFilter).lte = new Date(
+          filters.dateTo,
+        );
       }
     }
 

@@ -151,9 +151,9 @@ describe('FamilyMembersService', () => {
     it('should throw NotFoundException when member does not exist', async () => {
       mockPrismaService.familyMember.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.findOne('nonexistent-id', userId),
-      ).rejects.toThrow(new NotFoundException('Family member not found'));
+      await expect(service.findOne('nonexistent-id', userId)).rejects.toThrow(
+        new NotFoundException('Family member not found'),
+      );
     });
   });
 
@@ -227,9 +227,9 @@ describe('FamilyMembersService', () => {
     it('should throw NotFoundException if member does not belong to user', async () => {
       mockPrismaService.familyMember.findFirst.mockResolvedValue(null);
 
-      await expect(
-        service.remove('member-uuid-1', userId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.remove('member-uuid-1', userId)).rejects.toThrow(
+        NotFoundException,
+      );
       expect(mockPrismaService.familyMember.delete).not.toHaveBeenCalled();
     });
   });

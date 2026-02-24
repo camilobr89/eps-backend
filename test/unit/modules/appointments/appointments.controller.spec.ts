@@ -29,9 +29,7 @@ describe('AppointmentsController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AppointmentsController],
-      providers: [
-        { provide: AppointmentsService, useValue: mockService },
-      ],
+      providers: [{ provide: AppointmentsService, useValue: mockService }],
     }).compile();
 
     controller = module.get<AppointmentsController>(AppointmentsController);
@@ -97,14 +95,20 @@ describe('AppointmentsController', () => {
 
       const result = await controller.update(appointmentId, user, dto as any);
 
-      expect(mockService.update).toHaveBeenCalledWith(appointmentId, user.id, dto);
+      expect(mockService.update).toHaveBeenCalledWith(
+        appointmentId,
+        user.id,
+        dto,
+      );
       expect(result.status).toBe('confirmed');
     });
   });
 
   describe('remove', () => {
     it('should call service.remove with id and userId', async () => {
-      mockService.remove.mockResolvedValue({ message: 'Appointment deleted successfully' });
+      mockService.remove.mockResolvedValue({
+        message: 'Appointment deleted successfully',
+      });
 
       const result = await controller.remove(appointmentId, user);
 

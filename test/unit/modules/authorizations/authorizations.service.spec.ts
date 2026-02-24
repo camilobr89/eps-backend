@@ -32,7 +32,12 @@ const mockAuthorization = {
   expirationDate: new Date('2027-12-31'),
   createdAt: new Date(),
   services: [
-    { id: 'svc-1', serviceCode: '890201', serviceName: 'Consulta', quantity: 1 },
+    {
+      id: 'svc-1',
+      serviceCode: '890201',
+      serviceName: 'Consulta',
+      quantity: 1,
+    },
   ],
   familyMember: { id: memberId, fullName: 'Test Member', userId },
   epsProvider: null,
@@ -42,9 +47,7 @@ const createDto = {
   familyMemberId: memberId,
   documentType: 'orden_medica',
   diagnosisCode: 'J45.0',
-  services: [
-    { serviceCode: '890201', serviceName: 'Consulta', quantity: 1 },
-  ],
+  services: [{ serviceCode: '890201', serviceName: 'Consulta', quantity: 1 }],
 };
 
 describe('AuthorizationsService', () => {
@@ -187,7 +190,10 @@ describe('AuthorizationsService', () => {
     it('should throw NotFoundException if authorization belongs to another user', async () => {
       mockPrisma.authorization.findUnique.mockResolvedValue({
         ...mockAuthorization,
-        familyMember: { ...mockAuthorization.familyMember, userId: 'other-user' },
+        familyMember: {
+          ...mockAuthorization.familyMember,
+          userId: 'other-user',
+        },
       });
 
       await expect(service.findOne(authId, userId)).rejects.toThrow(
@@ -204,7 +210,9 @@ describe('AuthorizationsService', () => {
         notes: 'Updated notes',
       });
 
-      const result = await service.update(authId, userId, { notes: 'Updated notes' });
+      const result = await service.update(authId, userId, {
+        notes: 'Updated notes',
+      });
 
       expect(mockPrisma.authorization.update).toHaveBeenCalled();
       expect(result.notes).toBe('Updated notes');
@@ -221,14 +229,24 @@ describe('AuthorizationsService', () => {
       const updateArg = mockPrisma.authorization.update.mock.calls[0][0];
       expect(updateArg.data.services).toEqual({
         deleteMany: {},
-        create: [{ serviceCode: '999', quantity: 1, serviceName: 'New service', serviceType: undefined }],
+        create: [
+          {
+            serviceCode: '999',
+            quantity: 1,
+            serviceName: 'New service',
+            serviceType: undefined,
+          },
+        ],
       });
     });
 
     it('should verify new family member ownership when changing familyMemberId', async () => {
       const newMemberId = 'new-member-uuid';
       mockPrisma.authorization.findUnique.mockResolvedValue(mockAuthorization);
-      mockPrisma.familyMember.findFirst.mockResolvedValue({ id: newMemberId, userId });
+      mockPrisma.familyMember.findFirst.mockResolvedValue({
+        id: newMemberId,
+        userId,
+      });
       mockPrisma.authorization.update.mockResolvedValue(mockAuthorization);
 
       await service.update(authId, userId, { familyMemberId: newMemberId });
