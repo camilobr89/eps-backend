@@ -223,7 +223,7 @@ model Document {
   authorizationId String    @map("authorization_id") @db.Uuid
   fileName        String?   @map("file_name") @db.VarChar(255)
   fileUrl         String    @map("file_url")
-  fileType        String?   @map("file_type") @db.VarChar(10)
+  fileType        String?   @map("file_type") @db.VarChar(50)
   fileSizeBytes   Int?      @map("file_size_bytes")
   ocrStatus       OcrStatus @default(pending) @map("ocr_status")
   ocrErrorMessage String?   @map("ocr_error_message")
