@@ -19,6 +19,25 @@ services:
       - redis
       - minio
 
+  ocr-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    image: eps-ocr-worker
+    container_name: eps-ocr-worker
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_PORT=${MINIO_PORT}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+    depends_on:
+      - postgres
+      - redis
+      - minio
+
   postgres:
     image: postgres:16-alpine
     container_name: eps-db
@@ -34,7 +53,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: eps-redis
-    command: redis-server --maxmemory 64mb --maxmemory-policy allkeys-lru
+    command: redis-server --maxmemory 64mb --maxmemory-policy noeviction
     ports:
       - "6379:6379"
     volumes:

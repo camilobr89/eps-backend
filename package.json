@@ -22,6 +22,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.997.0",
     "@aws-sdk/s3-request-presigner": "^3.997.0",
+    "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
@@ -31,6 +32,7 @@
     "@prisma/adapter-pg": "^7.4.0",
     "@prisma/client": "^7.4.1",
     "bcrypt": "^6.0.0",
+    "bullmq": "^5.70.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "cookie-parser": "^1.4.7",
@@ -39,9 +41,12 @@
     "multer": "^2.0.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "pdf-to-img": "^5.0.0",
     "prisma": "^7.4.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "tesseract.js": "^7.0.0",
+    "unpdf": "^1.4.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

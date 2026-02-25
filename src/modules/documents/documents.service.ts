@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
-import { MinioService } from '../minio/minio.service';
+import { MinioService } from '../../modules/minio/minio.service';
 import { randomUUID } from 'crypto';
 
 @Injectable()
@@ -8,6 +10,7 @@ export class DocumentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly minio: MinioService,
+    @InjectQueue('ocr-jobs') private readonly ocrQueue: Queue,
   ) {}
 
   async upload(
@@ -15,17 +18,13 @@ export class DocumentsService {
     authorizationId: string,
     file: Express.Multer.File,
   ) {
-    // Verificar pertenencia de la autorización
     await this.verifyAuthorizationOwnership(authorizationId, userId);
 
-    // Generar key para MinIO
     const ext = this.getFileExtension(file.originalname);
     const fileKey = `${userId}/${authorizationId}/${randomUUID()}.${ext}`;
 
-    // Subir a MinIO
     await this.minio.uploadFile(fileKey, file.buffer, file.mimetype);
 
-    // Crear registro en BD
     const document = await this.prisma.document.create({
       data: {
         authorizationId,
@@ -37,20 +36,24 @@ export class DocumentsService {
       },
     });
 
+    // Encolar job de OCR
+    await this.ocrQueue.add('process-ocr', {
+      documentId: document.id,
+      fileKey,
+      authorizationId,
+    });
+
     return document;
   }
 
   async getDownloadUrl(id: string, userId: string) {
     const document = await this.findOneWithOwnership(id, userId);
-
     const url = await this.minio.getSignedUrl(document.fileUrl, 3600);
-
     return { url };
   }
 
   async getOcrStatus(id: string, userId: string) {
     const document = await this.findOneWithOwnership(id, userId);
-
     return {
       status: document.ocrStatus,
       errorMessage: document.ocrErrorMessage ?? undefined,
@@ -78,7 +81,10 @@ export class DocumentsService {
     return document;
   }
 
-  private async verifyAuthorizationOwnership(authorizationId: string, userId: string) {
+  private async verifyAuthorizationOwnership(
+    authorizationId: string,
+    userId: string,
+  ) {
     const authorization = await this.prisma.authorization.findUnique({
       where: { id: authorizationId },
       include: { familyMember: { select: { userId: true } } },
