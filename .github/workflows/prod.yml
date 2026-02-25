@@ -9,7 +9,7 @@ on:
 
 jobs:
   pipeline:
-    uses: my-banking-app/ci-templates/.github/workflows/nest-db-ci-cd.yml@v1.2.0
+    uses: my-banking-app/ci-templates/.github/workflows/nest-db-ci-cd.yml@v1.2.1
     with:
       service-name: "EPS Backend"
       docker-image-name: "eps-backend"
@@ -30,3 +30,7 @@ jobs:
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       REDIS_HOST: ${{ secrets.REDIS_HOST }}
       REDIS_PORT: ${{ secrets.REDIS_PORT }}
+      MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT }}
+      MINIO_PORT: ${{ secrets.MINIO_PORT }}
+      MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+      MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
