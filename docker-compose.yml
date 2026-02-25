@@ -20,12 +20,10 @@ services:
       - minio
 
   ocr-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
+    build: .
     image: eps-ocr-worker
-    container_name: eps-ocr-worker
     environment:
+      - ENTRYPOINT_CMD=node dist/src/worker.main.js
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
