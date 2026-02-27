@@ -17,7 +17,6 @@ jest.mock('unpdf', () => ({
   extractText: (...args: unknown[]) => mockExtractText(...args),
 }));
 
-
 describe('TesseractService', () => {
   let service: TesseractService;
 
@@ -34,7 +33,9 @@ describe('TesseractService', () => {
     it('should extract text from a JPEG image', async () => {
       // JPEG magic bytes: FF D8
       const jpegBuffer = Buffer.from([0xff, 0xd8, 0x00, 0x00]);
-      mockRecognize.mockResolvedValue({ data: { text: 'Extracted from image' } });
+      mockRecognize.mockResolvedValue({
+        data: { text: 'Extracted from image' },
+      });
 
       const result = await service.extractText(jpegBuffer);
 
@@ -57,7 +58,9 @@ describe('TesseractService', () => {
       const imgBuffer = Buffer.from([0xff, 0xd8, 0x00]);
       mockRecognize.mockRejectedValue(new Error('Recognition failed'));
 
-      await expect(service.extractText(imgBuffer)).rejects.toThrow('Recognition failed');
+      await expect(service.extractText(imgBuffer)).rejects.toThrow(
+        'Recognition failed',
+      );
       expect(mockTerminate).toHaveBeenCalled();
     });
   });

@@ -26,10 +26,11 @@ const documentId = 'doc-uuid-1';
 const authorizationId = 'auth-uuid-1';
 const fileKey = 'user/auth/file.pdf';
 
-const createMockJob = (data: Record<string, string>): Job => ({
-  data,
-  id: 'job-1',
-}) as unknown as Job;
+const createMockJob = (data: Record<string, string>): Job =>
+  ({
+    data,
+    id: 'job-1',
+  }) as unknown as Job;
 
 describe('OcrProcessor', () => {
   let processor: OcrProcessor;
@@ -94,7 +95,9 @@ describe('OcrProcessor', () => {
 
     it('should set status to failed when MinIO download fails', async () => {
       mockPrisma.document.update.mockResolvedValue({});
-      mockMinio.getFileBuffer.mockRejectedValue(new Error('MinIO connection refused'));
+      mockMinio.getFileBuffer.mockRejectedValue(
+        new Error('MinIO connection refused'),
+      );
 
       const job = createMockJob({ documentId, fileKey, authorizationId });
 
@@ -102,14 +105,19 @@ describe('OcrProcessor', () => {
 
       expect(mockPrisma.document.update).toHaveBeenLastCalledWith({
         where: { id: documentId },
-        data: { ocrStatus: 'failed', ocrErrorMessage: 'MinIO connection refused' },
+        data: {
+          ocrStatus: 'failed',
+          ocrErrorMessage: 'MinIO connection refused',
+        },
       });
     });
 
     it('should set status to failed when OCR extraction fails', async () => {
       mockPrisma.document.update.mockResolvedValue({});
       mockMinio.getFileBuffer.mockResolvedValue(Buffer.from('content'));
-      mockTesseract.extractText.mockRejectedValue(new Error('OCR engine error'));
+      mockTesseract.extractText.mockRejectedValue(
+        new Error('OCR engine error'),
+      );
 
       const job = createMockJob({ documentId, fileKey, authorizationId });
 
@@ -125,7 +133,9 @@ describe('OcrProcessor', () => {
       mockPrisma.document.update.mockResolvedValueOnce({}); // processing
       mockMinio.getFileBuffer.mockResolvedValue(Buffer.from('content'));
       mockTesseract.extractText.mockResolvedValue('extracted text');
-      mockPrisma.authorization.update.mockRejectedValue(new Error('DB write error'));
+      mockPrisma.authorization.update.mockRejectedValue(
+        new Error('DB write error'),
+      );
       mockPrisma.document.update.mockResolvedValue({}); // failed
 
       const job = createMockJob({ documentId, fileKey, authorizationId });

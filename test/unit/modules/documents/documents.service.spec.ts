@@ -105,17 +105,17 @@ describe('DocumentsService', () => {
         familyMember: { userId: 'other-user' },
       });
 
-      await expect(service.upload(userId, authorizationId, mockFile)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.upload(userId, authorizationId, mockFile),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw NotFoundException if authorization does not exist', async () => {
       mockPrisma.authorization.findUnique.mockResolvedValue(null);
 
-      await expect(service.upload(userId, authorizationId, mockFile)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.upload(userId, authorizationId, mockFile),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -127,7 +127,10 @@ describe('DocumentsService', () => {
       const result = await service.getDownloadUrl(documentId, userId);
 
       expect(result).toEqual({ url: 'https://minio/signed-url' });
-      expect(mockMinio.getSignedUrl).toHaveBeenCalledWith(mockDocument.fileUrl, 3600);
+      expect(mockMinio.getSignedUrl).toHaveBeenCalledWith(
+        mockDocument.fileUrl,
+        3600,
+      );
     });
 
     it('should throw NotFoundException if document does not exist', async () => {
