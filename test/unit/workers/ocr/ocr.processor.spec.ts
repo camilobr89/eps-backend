@@ -4,6 +4,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { MinioService } from '@/modules/minio/minio.service';
 import { TesseractService } from '@/workers/ocr/services/tesseract.service';
 import { Job } from 'bullmq';
+import { EPSParserRegistry } from '@/workers/ocr/parsers/parser.registry';
 
 const mockPrisma = {
   document: {
@@ -11,6 +12,9 @@ const mockPrisma = {
   },
   authorization: {
     update: jest.fn(),
+  },
+  authorizationService: {
+    create: jest.fn(),
   },
 };
 
@@ -20,6 +24,10 @@ const mockMinio = {
 
 const mockTesseract = {
   extractText: jest.fn(),
+};
+
+const mockParserRegistry = {
+  parseDocument: jest.fn(),
 };
 
 const documentId = 'doc-uuid-1';
@@ -44,6 +52,7 @@ describe('OcrProcessor', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: MinioService, useValue: mockMinio },
         { provide: TesseractService, useValue: mockTesseract },
+        { provide: EPSParserRegistry, useValue: mockParserRegistry },
       ],
     }).compile();
 
@@ -61,6 +70,11 @@ describe('OcrProcessor', () => {
 
       mockMinio.getFileBuffer.mockResolvedValue(fileBuffer);
       mockTesseract.extractText.mockResolvedValue(extractedText);
+      mockParserRegistry.parseDocument.mockReturnValue({
+        data: { diagnosticoCIE10: 'M54.5', prestadorNombre: 'Test IPS' },
+        confidence: 0.8,
+        parserUsed: 'salud_total',
+      });
       mockPrisma.document.update.mockResolvedValue({});
       mockPrisma.authorization.update.mockResolvedValue({});
 
