@@ -4,6 +4,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { MinioService } from '@/modules/minio/minio.service';
 import { TesseractService } from '@/workers/ocr/services/tesseract.service';
 import { Job } from 'bullmq';
+import { EPSParserRegistry } from '@/workers/ocr/parsers/parser.registry';
 
 const mockPrisma = {
   document: {
@@ -11,6 +12,9 @@ const mockPrisma = {
   },
   authorization: {
     update: jest.fn(),
+  },
+  authorizationService: {
+    create: jest.fn(),
   },
 };
 
@@ -22,14 +26,19 @@ const mockTesseract = {
   extractText: jest.fn(),
 };
 
+const mockParserRegistry = {
+  parseDocument: jest.fn(),
+};
+
 const documentId = 'doc-uuid-1';
 const authorizationId = 'auth-uuid-1';
 const fileKey = 'user/auth/file.pdf';
 
-const createMockJob = (data: Record<string, string>): Job => ({
-  data,
-  id: 'job-1',
-}) as unknown as Job;
+const createMockJob = (data: Record<string, string>): Job =>
+  ({
+    data,
+    id: 'job-1',
+  }) as unknown as Job;
 
 describe('OcrProcessor', () => {
   let processor: OcrProcessor;
@@ -43,6 +52,7 @@ describe('OcrProcessor', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: MinioService, useValue: mockMinio },
         { provide: TesseractService, useValue: mockTesseract },
+        { provide: EPSParserRegistry, useValue: mockParserRegistry },
       ],
     }).compile();
 
@@ -60,6 +70,11 @@ describe('OcrProcessor', () => {
 
       mockMinio.getFileBuffer.mockResolvedValue(fileBuffer);
       mockTesseract.extractText.mockResolvedValue(extractedText);
+      mockParserRegistry.parseDocument.mockReturnValue({
+        data: { diagnosticoCIE10: 'M54.5', prestadorNombre: 'Test IPS' },
+        confidence: 0.8,
+        parserUsed: 'salud_total',
+      });
       mockPrisma.document.update.mockResolvedValue({});
       mockPrisma.authorization.update.mockResolvedValue({});
 
@@ -94,7 +109,9 @@ describe('OcrProcessor', () => {
 
     it('should set status to failed when MinIO download fails', async () => {
       mockPrisma.document.update.mockResolvedValue({});
-      mockMinio.getFileBuffer.mockRejectedValue(new Error('MinIO connection refused'));
+      mockMinio.getFileBuffer.mockRejectedValue(
+        new Error('MinIO connection refused'),
+      );
 
       const job = createMockJob({ documentId, fileKey, authorizationId });
 
@@ -102,14 +119,19 @@ describe('OcrProcessor', () => {
 
       expect(mockPrisma.document.update).toHaveBeenLastCalledWith({
         where: { id: documentId },
-        data: { ocrStatus: 'failed', ocrErrorMessage: 'MinIO connection refused' },
+        data: {
+          ocrStatus: 'failed',
+          ocrErrorMessage: 'MinIO connection refused',
+        },
       });
     });
 
     it('should set status to failed when OCR extraction fails', async () => {
       mockPrisma.document.update.mockResolvedValue({});
       mockMinio.getFileBuffer.mockResolvedValue(Buffer.from('content'));
-      mockTesseract.extractText.mockRejectedValue(new Error('OCR engine error'));
+      mockTesseract.extractText.mockRejectedValue(
+        new Error('OCR engine error'),
+      );
 
       const job = createMockJob({ documentId, fileKey, authorizationId });
 
@@ -125,7 +147,9 @@ describe('OcrProcessor', () => {
       mockPrisma.document.update.mockResolvedValueOnce({}); // processing
       mockMinio.getFileBuffer.mockResolvedValue(Buffer.from('content'));
       mockTesseract.extractText.mockResolvedValue('extracted text');
-      mockPrisma.authorization.update.mockRejectedValue(new Error('DB write error'));
+      mockPrisma.authorization.update.mockRejectedValue(
+        new Error('DB write error'),
+      );
       mockPrisma.document.update.mockResolvedValue({}); // failed
 
       const job = createMockJob({ documentId, fileKey, authorizationId });

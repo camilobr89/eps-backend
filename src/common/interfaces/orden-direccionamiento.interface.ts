@@ -12,7 +12,7 @@ export interface OrdenDireccionamiento {
     | 'formula_medica'
     | 'orden_laboratorio';
   numeroSolicitud: string;
-  fechaHoraEmision: Date;
+  fechaHoraEmision: Date | null;
   fechaVencimiento: Date | null;
 
   // EPS / Entidad responsable
