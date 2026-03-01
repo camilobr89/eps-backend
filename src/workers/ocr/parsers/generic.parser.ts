@@ -20,9 +20,10 @@ export class GenericParser implements IEPSParser {
       ),
       fechaHoraEmision: this.extractAnyDate(rawText),
       fechaVencimiento: this.extractDateNear(rawText, /vencimiento/i),
-      epsNombre: this.extractField(
+      epsNombre: this.extractAndClean(
         rawText,
-        /(?:entidad|eps|nombre)\s*:\s*([^\n]+?)(?:\s+C[oó]digo|\n)/i,
+        /(?:entidad|eps|nombre)\s*:\s*([^\n]{1,100})/i,
+        /\s*C[oó]digo.*/i,
       ),
       epsCodigo: this.extractField(
         rawText,
@@ -94,6 +95,16 @@ export class GenericParser implements IEPSParser {
       return 'formula_medica';
     if (lower.includes('laboratorio')) return 'orden_laboratorio';
     return 'autorizacion';
+  }
+
+  private extractAndClean(
+    text: string,
+    regex: RegExp,
+    stripPattern: RegExp,
+  ): string {
+    const match = text.match(regex);
+    if (!match?.[1]) return '';
+    return match[1].replace(stripPattern, '').trim();
   }
 
   private extractPatientName(text: string): string {
