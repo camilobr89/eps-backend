@@ -20,10 +20,18 @@ describe('GenericParser', () => {
 
   describe('parse', () => {
     it('should detect tipo documento from text', () => {
-      expect(parser.parse('orden de direccionamiento').tipoDocumento).toBe('orden_direccionamiento');
-      expect(parser.parse('formula medica').tipoDocumento).toBe('formula_medica');
-      expect(parser.parse('laboratorio clínico').tipoDocumento).toBe('orden_laboratorio');
-      expect(parser.parse('autorización de servicio').tipoDocumento).toBe('autorizacion');
+      expect(parser.parse('orden de direccionamiento').tipoDocumento).toBe(
+        'orden_direccionamiento',
+      );
+      expect(parser.parse('formula medica').tipoDocumento).toBe(
+        'formula_medica',
+      );
+      expect(parser.parse('laboratorio clínico').tipoDocumento).toBe(
+        'orden_laboratorio',
+      );
+      expect(parser.parse('autorización de servicio').tipoDocumento).toBe(
+        'autorizacion',
+      );
     });
 
     it('should extract CIE-10 codes', () => {

@@ -13,7 +13,9 @@ describe('SaludTotalParser', () => {
 
   describe('canParse', () => {
     it('should return true when text contains "Salud Total"', () => {
-      expect(parser.canParse('Nombre: Salud Total EPS - Virrey Solis')).toBe(true);
+      expect(parser.canParse('Nombre: Salud Total EPS - Virrey Solis')).toBe(
+        true,
+      );
     });
 
     it('should return true when text contains "SaludTotal"', () => {

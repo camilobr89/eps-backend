@@ -7,9 +7,8 @@ import { IEPSParser } from './parser.interface';
 export class GenericParser implements IEPSParser {
   epsIdentifier = 'generic';
 
-  canParse(_rawText: string): boolean {
-    // El parser genérico siempre puede intentar parsear
-    return true;
+  canParse(rawText: string): boolean {
+    return rawText.length >= 0;
   }
 
   parse(rawText: string): Partial<OrdenDireccionamiento> {
