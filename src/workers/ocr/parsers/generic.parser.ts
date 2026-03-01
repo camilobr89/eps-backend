@@ -22,7 +22,7 @@ export class GenericParser implements IEPSParser {
       fechaVencimiento: this.extractDateNear(rawText, /vencimiento/i),
       epsNombre: this.extractField(
         rawText,
-        /(?:entidad|eps|nombre)[^:]*:\s*(.+?)(?:\n|C[oó]digo)/i,
+        /(?:entidad|eps|nombre)\s*:\s*([^\n]+?)(?:\s+C[oó]digo|\n)/i,
       ),
       epsCodigo: this.extractField(
         rawText,
