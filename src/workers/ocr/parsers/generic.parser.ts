@@ -16,51 +16,44 @@ export class GenericParser implements IEPSParser {
       tipoDocumento: this.detectTipoDocumento(rawText),
       numeroSolicitud: this.extractLongNumber(
         rawText,
-        /(?:solicitud|orden|n[úu]mero)[^:]*:\s*(\d{8,})/i,
+        /(?:solicitud|orden|n[úu]mero)\s*:\s*(\d{8,})/i,
       ),
       fechaHoraEmision: this.extractAnyDate(rawText),
       fechaVencimiento: this.extractDateNear(rawText, /vencimiento/i),
-      epsNombre: this.extractAndClean(
-        rawText,
-        /(?:entidad|eps|nombre)\s*:\s*([^\n]{1,100})/i,
-        /\s*C[oó]digo.*/i,
-      ),
+      epsNombre: this.extractEpsNombre(rawText),
       epsCodigo: this.extractField(
         rawText,
-        /(?:C[oó]digo)[^:]*:\s*(EPS\d+|\d{3,6})/i,
+        /C[oó]digo\s*:\s*(EPS\d+|\d{3,6})/i,
       ),
       pacienteNombre: this.extractPatientName(rawText),
       pacienteDocumentoTipo: this.extractField(
         rawText,
-        /Tipo\s*(?:de\s*)?Documento[^:]*:\s*(.+?)(?:\n|Documento)/i,
+        /Tipo\s*(?:de\s*)?Documento\s*:\s*([^\n]{1,50})/i,
       ),
       pacienteDocumentoNumero: this.extractDocumentNumber(rawText),
       prestadorNombre: this.extractField(
         rawText,
-        /(?:prestador|ips)[^:]*nombre[^:]*:\s*(.+?)(?:\n|Nit)/i,
+        /(?:prestador|ips)\s*nombre\s*:\s*([^\n]{1,100})/i,
       ),
-      prestadorNit: this.extractField(rawText, /Nit[^:]*:\s*(\d{6,})/i),
+      prestadorNit: this.extractField(rawText, /Nit\s*:\s*(\d{6,})/i),
       prestadorCodigo: '',
       prestadorDireccion: '',
       prestadorTelefono: '',
-      regimen: this.extractField(rawText, /R[eé]gimen[^:]*:\s*(.+?)(?:\n|$)/i),
+      regimen: this.extractField(rawText, /R[eé]gimen\s*:\s*([^\n]{1,100})/i),
       diagnosticoCIE10: this.extractCIE10(rawText),
       ubicacionPaciente: this.extractField(
         rawText,
-        /ubicaci[oó]n[^:]*:\s*(.+?)(?:\n|$)/i,
+        /ubicaci[oó]n\s*:\s*([^\n]{1,50})/i,
       ),
-      origenServicio: this.extractField(
-        rawText,
-        /origen[^:]*:\s*(.+?)(?:\n|$)/i,
-      ),
+      origenServicio: this.extractField(rawText, /origen\s*:\s*([^\n]{1,50})/i),
       servicios: this.extractServicios(rawText),
       tipoRecaudo: this.extractField(
         rawText,
-        /(?:recaudo|copago|cuota)[^:]*:\s*(.+?)(?:\n|Valor|$)/i,
+        /(?:recaudo|copago|cuota)\s*:\s*([^\n]{1,50})/i,
       ),
       copago: this.extractMoney(
         rawText,
-        /(?:valor|copago|cuota)[^:]*:\s*\$?\s*(\d[\d.,]*)/i,
+        /(?:valor|copago|cuota)\s*:\s*\$?\s*(\d[\d.,]*)/i,
       ),
       porcentaje: 0,
       valorMaximo: 0,
@@ -97,22 +90,20 @@ export class GenericParser implements IEPSParser {
     return 'autorizacion';
   }
 
-  private extractAndClean(
-    text: string,
-    regex: RegExp,
-    stripPattern: RegExp,
-  ): string {
-    const match = text.match(regex);
-    if (!match?.[1]) return '';
-    return match[1].replace(stripPattern, '').trim();
-  }
-
   private extractPatientName(text: string): string {
     // Buscar nombres en mayúsculas (patrón común en documentos colombianos)
     const match = text.match(
       /(?:Nombre|Paciente)[^:]*:\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]{5,})/i,
     );
     return match?.[1]?.trim() ?? '';
+  }
+
+  private extractEpsNombre(text: string): string {
+    const match = text.match(/(?:entidad|eps|nombre)\s*:\s*([^\n]{1,100})/i);
+    if (!match?.[1]) return '';
+    const raw = match[1];
+    const codigoIdx = raw.search(/C[oó]digo/i);
+    return codigoIdx > 0 ? raw.substring(0, codigoIdx).trim() : raw.trim();
   }
 
   private extractDocumentNumber(text: string): string {
