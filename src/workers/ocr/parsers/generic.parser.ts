@@ -53,7 +53,7 @@ export class GenericParser implements IEPSParser {
       ),
       copago: this.extractMoney(
         rawText,
-        /(?:valor|copago|cuota)\s*:\s*\$?\s*(\d[\d.,]*)/i,
+        /(?:valor|copago|cuota)\s*:\s*\$?(\d[\d.,]{0,20})/i,
       ),
       porcentaje: 0,
       valorMaximo: 0,
