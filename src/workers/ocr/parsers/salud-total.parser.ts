@@ -21,81 +21,85 @@ export class SaludTotalParser implements IEPSParser {
       tipoDocumento: this.extractTipoDocumento(rawText),
       numeroSolicitud: this.extractField(
         rawText,
-        /No\.\s*(?:Solicitud|Orden)[^:]{0,200}:\s*(\S+)/i,
+        /No\.\s{0,20}(?:Solicitud|Orden)[^:]{0,200}:\s{0,20}(\S+)/i,
       ),
       fechaHoraEmision: this.extractDate(
         rawText,
-        /Fecha\s*(?:y\s*Hora)?[^:]{0,200}:\s*(.+?)(?:\n|$)/i,
+        /Fecha\s{0,20}(?:y\s{0,20}Hora)?[^:]{0,200}:\s{0,20}([^\n]{1,200})(?:\n|$)/i,
       ),
       fechaVencimiento: this.extractDate(
         rawText,
-        /(?:Fecha\s*)?Vencimiento[^:]{0,200}:\s*(.+?)(?:\n|$)/i,
+        /(?:Fecha\s{0,20})?Vencimiento[^:]{0,200}:\s{0,20}([^\n]{1,200})(?:\n|$)/i,
       ),
       epsNombre: this.extractEpsNombre(rawText),
       epsCodigo:
-        this.extractField(rawText, /C[oó]digo[^:]{0,200}:\s*(EPS\d+)/i) ?? '',
+        this.extractField(rawText, /C[oó]digo[^:]{0,200}:\s{0,20}(EPS\d+)/i) ??
+        '',
       pacienteNombre: this.extractField(
         rawText,
-        /Nombre[^:]{0,200}:\s*([A-ZÁÉÍÓÚÑ\s]+?)(?:\s*"|\s*Fecha|\n)/i,
+        /Nombre[^:]{0,200}:\s{0,20}([A-ZÁÉÍÓÚÑ\s]{1,200})(?:\s{0,20}"|\s{0,20}Fecha|\n)/i,
       ),
       pacienteDocumentoTipo: this.extractField(
         rawText,
-        /Tipo\s*Documento[^:]{0,200}:\s*(.+?)(?:\s+Documento:|\n)/i,
+        /Tipo\s{0,20}Documento[^:]{0,200}:\s{0,20}([^\n]{1,200})(?:\s{1,20}Documento:|\n)/i,
       ),
       pacienteDocumentoNumero: this.extractField(
         rawText,
-        /(?:Tipo\s*Documento[^:]{0,200}:[^:]{0,200})?Documento[^:]{0,200}:\s*(\d+)/i,
+        /(?:Tipo\s{0,20}Documento[^:]{0,200}:[^:]{0,200})?Documento[^:]{0,200}:\s{0,20}(\d{1,20})/i,
       ),
       prestadorNombre: this.extractPrestador(
         rawText,
-        /(?:INFORMACION DEL PRESTADOR|PRESTADOR)\s*\n?\s*Nombre[^:]{0,200}:\s*(.+?)(?:\s+Nit|\n)/i,
+        /(?:INFORMACION DEL PRESTADOR|PRESTADOR)\s{0,20}\n?\s{0,20}Nombre[^:]{0,200}:\s{0,20}([^\n]{1,200})(?:\s{1,20}Nit|\n)/i,
       ),
-      prestadorNit: this.extractField(rawText, /Nit[^:]{0,200}:\s*(\d+)/i),
+      prestadorNit: this.extractField(
+        rawText,
+        /Nit[^:]{0,200}:\s{0,20}(\d{1,20})/i,
+      ),
       prestadorCodigo: this.extractField(
         rawText,
-        /(?:Nit[^:]{0,200}:\s*\d+\s+)?C[oó]digo[^:]{0,200}:\s*(\d+)/i,
+        /(?:Nit[^:]{0,200}:\s{0,20}\d{1,20}\s{1,20})?C[oó]digo[^:]{0,200}:\s{0,20}(\d{1,20})/i,
       ),
       prestadorDireccion: this.extractField(
         rawText,
-        /Direcci[oó]n[^:]{0,200}:\s*(.+?)(?:\s+Tel[eé]fono|\n)/i,
+        /Direcci[oó]n[^:]{0,200}:\s{0,20}([^\n]{1,200})(?:\s{1,20}Tel[eé]fono|\n)/i,
       ),
       prestadorTelefono: this.extractField(
         rawText,
-        /Tel[eé]fono[^:]{0,200}:\s*(\d+)/i,
+        /Tel[eé]fono[^:]{0,200}:\s{0,20}(\d{1,20})/i,
       ),
       regimen: this.extractField(
         rawText,
-        /R[eé]gimen[^:]{0,200}:\s*(.+?)(?:\n|$)/i,
+        /R[eé]gimen[^:]{0,200}:\s{0,20}([^\n]{1,200})(?:\n|$)/i,
       ),
       diagnosticoCIE10: this.extractDiagnostico(rawText),
       ubicacionPaciente: this.extractField(
         rawText,
-        /Ubicaci[oó]n\s*(?:del\s*)?Paciente[^:]{0,200}:\s*(.+?)(?:\n|$)/i,
+        /Ubicaci[oó]n\s{0,20}(?:del\s{0,20})?Paciente[^:]{0,200}:\s{0,20}([^\n]{1,200})(?:\n|$)/i,
       ),
       origenServicio: this.extractField(
         rawText,
-        /Origen\s*(?:del\s*)?[Ss]ervicio[^:]{0,200}:\s*(.+?)(?:\n|$)/i,
+        /Origen\s{0,20}(?:del\s{0,20})?[Ss]ervicio[^:]{0,200}:\s{0,20}([^\n]{1,200})(?:\n|$)/i,
       ),
       servicios: this.extractServicios(rawText),
       tipoRecaudo: this.extractField(
         rawText,
-        /Tipo\s*(?:de\s*)?Recaudo[^:]{0,200}:\s*(.+?)(?:\s+Valor|\n|$)/i,
+        /Tipo\s{0,20}(?:de\s{0,20})?Recaudo[^:]{0,200}:\s{0,20}([^\n]{1,200}?)(?:\s{1,20}Valor|\n|$)/i,
       ),
       copago: this.extractNumber(
         rawText,
-        /(?:Valor|Copago)[^:]{0,200}:\s*(\d[\d.,]*)/i,
+        /(?:Valor|Copago)[^:]{0,200}:\s{0,20}(\d[\d.,]{0,50})/i,
       ),
       porcentaje: this.extractNumber(
         rawText,
-        /Porcentaje[^:]{0,200}:\s*(\d+)/i,
+        /Porcentaje[^:]{0,200}:\s{0,20}(\d{1,20})/i,
       ),
       valorMaximo: this.extractNumber(
         rawText,
-        /(?:Valor\s*)?M[aá]ximo[^:]{0,200}:\s*(\d[\d.,]*)/i,
+        /(?:Valor\s{0,20})?M[aá]ximo[^:]{0,200}:\s{0,20}(\d[\d.,]{0,50})/i,
       ),
       semanasCotizadas: this.extractNumber(
         rawText,
-        /Semanas\s*Cotizadas[^:]{0,200}:\s*(\d+)/i,
+        /Semanas\s{0,20}Cotizadas[^:]{0,200}:\s{0,20}(\d{1,20})/i,
       ),
     };
   }
@@ -134,7 +138,9 @@ export class SaludTotalParser implements IEPSParser {
   }
 
   private extractEpsNombre(text: string): string {
-    const match = text.match(/Nombre[^:]{0,200}:\s*(Salud Total[^\n]*)/i);
+    const match = text.match(
+      /Nombre[^:]{0,200}:\s{0,20}(Salud Total[^\n]{0,200})/i,
+    );
     return match?.[1]?.trim() ?? 'Salud Total EPS';
   }
 
@@ -146,7 +152,7 @@ export class SaludTotalParser implements IEPSParser {
   private extractDiagnostico(text: string): string {
     // Buscar patrón CIE-10: letra + números con punto opcional
     const match = text.match(
-      /Diagn[oó]stico[^:]{0,200}:\s*(?:.*?)([A-Z]\d{2}\.?\d*)/i,
+      /Diagn[oó]stico[^:]{0,200}:\s{0,20}(?:[^\n]{0,200})([A-Z]\d{2}\.?\d{0,5})/i,
     );
     return match?.[1] ?? '';
   }
@@ -158,7 +164,7 @@ export class SaludTotalParser implements IEPSParser {
     // Ejemplo: "8614010000 1 INFILTRACION INTRALESIONAL..."
     // Ejemplo: "1306 30 (treinta) MEDICAMENTOS - LOSARTAN..."
     const regex =
-      /(\d{4,10})\s+(\d+)\s+(?:\([^)]+\)\s+)?(.+?)(?=\n\d{4,10}\s|\nTipo\s|$)/gi;
+      /(\d{4,10})\s{1,20}(\d+)\s{1,20}(?:\([^)]{1,200}\)\s{1,20})?([^\n]{1,200})(?=\n\d{4,10}\s{1,20}|\nTipo\s{1,20}|$)/gi;
     let match: RegExpExecArray | null;
 
     while ((match = regex.exec(text)) !== null) {
@@ -171,7 +177,7 @@ export class SaludTotalParser implements IEPSParser {
 
     // Alternativa: buscar código CUPS (10 dígitos)
     if (servicios.length === 0) {
-      const cupsRegex = /(\d{10})\s+(\d+)\s+(.+?)(?:\n|$)/gi;
+      const cupsRegex = /(\d{10})\s{1,20}(\d+)\s{1,20}([^\n]{1,200})(?:\n|$)/gi;
       while ((match = cupsRegex.exec(text)) !== null) {
         servicios.push({
           codigo: match[1],
@@ -215,7 +221,7 @@ export class SaludTotalParser implements IEPSParser {
 
     // Formato: "24 Feb 2026 10:17" o "24 Feb 2026"
     const match = dateStr.match(
-      /(\d{1,2})\s+(\w{3})\s+(\d{4})(?:\s+(\d{1,2})[:\s](\d{2}))?/i,
+      /(\d{1,2})\s{1,20}(\w{3})\s{1,20}(\d{4})(?:\s{1,20}(\d{1,2})[:\s](\d{2}))?/i,
     );
     if (match) {
       const month = months[match[2].toLowerCase().substring(0, 3)];

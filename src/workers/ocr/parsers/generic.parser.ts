@@ -16,44 +16,53 @@ export class GenericParser implements IEPSParser {
       tipoDocumento: this.detectTipoDocumento(rawText),
       numeroSolicitud: this.extractLongNumber(
         rawText,
-        /(?:solicitud|orden|n[úu]mero)\s*:\s*(\d{8,})/i,
+        /(?:solicitud|orden|n[úu]mero)\s{0,20}:\s{0,20}(\d{8,50})/i,
       ),
       fechaHoraEmision: this.extractAnyDate(rawText),
       fechaVencimiento: this.extractDateNear(rawText, /vencimiento/i),
       epsNombre: this.extractEpsNombre(rawText),
       epsCodigo: this.extractField(
         rawText,
-        /C[oó]digo\s*:\s*(EPS\d+|\d{3,6})/i,
+        /C[oó]digo\s{0,20}:\s{0,20}(EPS\d{1,20}|\d{3,6})/i,
       ),
       pacienteNombre: this.extractPatientName(rawText),
       pacienteDocumentoTipo: this.extractField(
         rawText,
-        /Tipo\s*(?:de\s*)?Documento\s*:\s*([^\n]{1,50})/i,
+        /Tipo\s{0,20}(?:de\s{0,20})?Documento\s{0,20}:\s{0,20}([^\n]{1,50})/i,
       ),
       pacienteDocumentoNumero: this.extractDocumentNumber(rawText),
       prestadorNombre: this.extractField(
         rawText,
-        /(?:prestador|ips)\s*nombre\s*:\s*([^\n]{1,100})/i,
+        /(?:prestador|ips)\s{0,20}nombre\s{0,20}:\s{0,20}([^\n]{1,100})/i,
       ),
-      prestadorNit: this.extractField(rawText, /Nit\s*:\s*(\d{6,})/i),
+      prestadorNit: this.extractField(
+        rawText,
+        /Nit\s{0,20}:\s{0,20}(\d{6,20})/i,
+      ),
       prestadorCodigo: '',
       prestadorDireccion: '',
       prestadorTelefono: '',
-      regimen: this.extractField(rawText, /R[eé]gimen\s*:\s*([^\n]{1,100})/i),
+      regimen: this.extractField(
+        rawText,
+        /R[eé]gimen\s{0,20}:\s{0,20}([^\n]{1,100})/i,
+      ),
       diagnosticoCIE10: this.extractCIE10(rawText),
       ubicacionPaciente: this.extractField(
         rawText,
-        /ubicaci[oó]n\s*:\s*([^\n]{1,50})/i,
+        /ubicaci[oó]n\s{0,20}:\s{0,20}([^\n]{1,50})/i,
       ),
-      origenServicio: this.extractField(rawText, /origen\s*:\s*([^\n]{1,50})/i),
+      origenServicio: this.extractField(
+        rawText,
+        /origen\s{0,20}:\s{0,20}([^\n]{1,50})/i,
+      ),
       servicios: this.extractServicios(rawText),
       tipoRecaudo: this.extractField(
         rawText,
-        /(?:recaudo|copago|cuota)\s*:\s*([^\n]{1,50})/i,
+        /(?:recaudo|copago|cuota)\s{0,20}:\s{0,20}([^\n]{1,50})/i,
       ),
       copago: this.extractMoney(
         rawText,
-        /(?:valor|copago|cuota)\s*:\s*\$?(\d[\d.,]{0,20})/i,
+        /(?:valor|copago|cuota)\s{0,20}:\s{0,20}\$?(\d[\d.,]{0,20})/i,
       ),
       porcentaje: 0,
       valorMaximo: 0,
@@ -93,13 +102,15 @@ export class GenericParser implements IEPSParser {
   private extractPatientName(text: string): string {
     // Buscar nombres en mayúsculas (patrón común en documentos colombianos)
     const match = text.match(
-      /(?:Nombre|Paciente)[^:]{0,200}:\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]{5,})/i,
+      /(?:Nombre|Paciente)[^:]{0,200}:\s{0,20}([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]{5,200})/i,
     );
     return match?.[1]?.trim() ?? '';
   }
 
   private extractEpsNombre(text: string): string {
-    const match = text.match(/(?:entidad|eps|nombre)\s*:\s*([^\n]{1,100})/i);
+    const match = text.match(
+      /(?:entidad|eps|nombre)\s{0,20}:\s{0,20}([^\n]{1,100})/i,
+    );
     if (!match?.[1]) return '';
     const raw = match[1];
     const codigoIdx = raw.search(/C[oó]digo/i);
@@ -109,7 +120,7 @@ export class GenericParser implements IEPSParser {
   private extractDocumentNumber(text: string): string {
     // Buscar número de documento cerca de "Documento:" o "CC" o "TI"
     const match = text.match(
-      /(?:Documento|CC|C\.C\.|TI)[^:]{0,200}:\s*(\d{5,12})/i,
+      /(?:Documento|CC|C\.C\.|TI)[^:]{0,200}:\s{0,20}(\d{5,12})/i,
     );
     return match?.[1] ?? '';
   }
@@ -124,7 +135,7 @@ export class GenericParser implements IEPSParser {
     const servicios: ServicioDireccionado[] = [];
 
     // Código CUPS: 10 dígitos
-    const cupsRegex = /(\d{10})\s+(\d+)\s+(.+?)(?:\n|$)/gi;
+    const cupsRegex = /(\d{10})\s{1,20}(\d+)\s{1,20}([^\n]{1,200})(?:\n|$)/gi;
     let match: RegExpExecArray | null;
     while ((match = cupsRegex.exec(text)) !== null) {
       servicios.push({
@@ -140,7 +151,7 @@ export class GenericParser implements IEPSParser {
   private extractAnyDate(text: string): Date | null {
     // Buscar primera fecha en formato colombiano
     const match = text.match(
-      /(\d{1,2})\s+(Ene|Feb|Mar|Abr|May|Jun|Jul|Ago|Sep|Oct|Nov|Dic)\s+(\d{4})/i,
+      /(\d{1,2})\s{1,20}(Ene|Feb|Mar|Abr|May|Jun|Jul|Ago|Sep|Oct|Nov|Dic)\s{1,20}(\d{4})/i,
     );
     if (match) {
       return this.parseDate(match[1], match[2], match[3]);
@@ -167,7 +178,7 @@ export class GenericParser implements IEPSParser {
       keywordMatch.index + 100,
     );
     const dateMatch = nearText.match(
-      /(\d{1,2})\s+(Ene|Feb|Mar|Abr|May|Jun|Jul|Ago|Sep|Oct|Nov|Dic)\s+(\d{4})/i,
+      /(\d{1,2})\s{1,20}(Ene|Feb|Mar|Abr|May|Jun|Jul|Ago|Sep|Oct|Nov|Dic)\s{1,20}(\d{4})/i,
     );
     if (dateMatch) {
       return this.parseDate(dateMatch[1], dateMatch[2], dateMatch[3]);
