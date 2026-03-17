@@ -93,7 +93,7 @@ export class GenericParser implements IEPSParser {
   private extractPatientName(text: string): string {
     // Buscar nombres en mayúsculas (patrón común en documentos colombianos)
     const match = text.match(
-      /(?:Nombre|Paciente)[^:]*:\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]{5,})/i,
+      /(?:Nombre|Paciente)[^:]{0,200}:\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]{5,})/i,
     );
     return match?.[1]?.trim() ?? '';
   }
@@ -108,7 +108,9 @@ export class GenericParser implements IEPSParser {
 
   private extractDocumentNumber(text: string): string {
     // Buscar número de documento cerca de "Documento:" o "CC" o "TI"
-    const match = text.match(/(?:Documento|CC|C\.C\.|TI)[^:]*:\s*(\d{5,12})/i);
+    const match = text.match(
+      /(?:Documento|CC|C\.C\.|TI)[^:]{0,200}:\s*(\d{5,12})/i,
+    );
     return match?.[1] ?? '';
   }
 

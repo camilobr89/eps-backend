@@ -21,75 +21,81 @@ export class SaludTotalParser implements IEPSParser {
       tipoDocumento: this.extractTipoDocumento(rawText),
       numeroSolicitud: this.extractField(
         rawText,
-        /No\.\s*(?:Solicitud|Orden)[^:]*:\s*(\S+)/i,
+        /No\.\s*(?:Solicitud|Orden)[^:]{0,200}:\s*(\S+)/i,
       ),
       fechaHoraEmision: this.extractDate(
         rawText,
-        /Fecha\s*(?:y\s*Hora)?[^:]*:\s*(.+?)(?:\n|$)/i,
+        /Fecha\s*(?:y\s*Hora)?[^:]{0,200}:\s*(.+?)(?:\n|$)/i,
       ),
       fechaVencimiento: this.extractDate(
         rawText,
-        /(?:Fecha\s*)?Vencimiento[^:]*:\s*(.+?)(?:\n|$)/i,
+        /(?:Fecha\s*)?Vencimiento[^:]{0,200}:\s*(.+?)(?:\n|$)/i,
       ),
       epsNombre: this.extractEpsNombre(rawText),
       epsCodigo:
-        this.extractField(rawText, /C[oó]digo[^:]*:\s*(EPS\d+)/i) ?? '',
+        this.extractField(rawText, /C[oó]digo[^:]{0,200}:\s*(EPS\d+)/i) ?? '',
       pacienteNombre: this.extractField(
         rawText,
-        /Nombre[^:]*:\s*([A-ZÁÉÍÓÚÑ\s]+?)(?:\s*"|\s*Fecha|\n)/i,
+        /Nombre[^:]{0,200}:\s*([A-ZÁÉÍÓÚÑ\s]+?)(?:\s*"|\s*Fecha|\n)/i,
       ),
       pacienteDocumentoTipo: this.extractField(
         rawText,
-        /Tipo\s*Documento[^:]*:\s*(.+?)(?:\s+Documento:|\n)/i,
+        /Tipo\s*Documento[^:]{0,200}:\s*(.+?)(?:\s+Documento:|\n)/i,
       ),
       pacienteDocumentoNumero: this.extractField(
         rawText,
-        /(?:Tipo\s*Documento[^:]*:[^:]*)?Documento[^:]*:\s*(\d+)/i,
+        /(?:Tipo\s*Documento[^:]{0,200}:[^:]{0,200})?Documento[^:]{0,200}:\s*(\d+)/i,
       ),
       prestadorNombre: this.extractPrestador(
         rawText,
-        /(?:INFORMACION DEL PRESTADOR|PRESTADOR)\s*\n?\s*Nombre[^:]*:\s*(.+?)(?:\s+Nit|\n)/i,
+        /(?:INFORMACION DEL PRESTADOR|PRESTADOR)\s*\n?\s*Nombre[^:]{0,200}:\s*(.+?)(?:\s+Nit|\n)/i,
       ),
-      prestadorNit: this.extractField(rawText, /Nit[^:]*:\s*(\d+)/i),
+      prestadorNit: this.extractField(rawText, /Nit[^:]{0,200}:\s*(\d+)/i),
       prestadorCodigo: this.extractField(
         rawText,
-        /(?:Nit[^:]*:\s*\d+\s+)?C[oó]digo[^:]*:\s*(\d+)/i,
+        /(?:Nit[^:]{0,200}:\s*\d+\s+)?C[oó]digo[^:]{0,200}:\s*(\d+)/i,
       ),
       prestadorDireccion: this.extractField(
         rawText,
-        /Direcci[oó]n[^:]*:\s*(.+?)(?:\s+Tel[eé]fono|\n)/i,
+        /Direcci[oó]n[^:]{0,200}:\s*(.+?)(?:\s+Tel[eé]fono|\n)/i,
       ),
       prestadorTelefono: this.extractField(
         rawText,
-        /Tel[eé]fono[^:]*:\s*(\d+)/i,
+        /Tel[eé]fono[^:]{0,200}:\s*(\d+)/i,
       ),
-      regimen: this.extractField(rawText, /R[eé]gimen[^:]*:\s*(.+?)(?:\n|$)/i),
+      regimen: this.extractField(
+        rawText,
+        /R[eé]gimen[^:]{0,200}:\s*(.+?)(?:\n|$)/i,
+      ),
       diagnosticoCIE10: this.extractDiagnostico(rawText),
       ubicacionPaciente: this.extractField(
         rawText,
-        /Ubicaci[oó]n\s*(?:del\s*)?Paciente[^:]*:\s*(.+?)(?:\n|$)/i,
+        /Ubicaci[oó]n\s*(?:del\s*)?Paciente[^:]{0,200}:\s*(.+?)(?:\n|$)/i,
       ),
       origenServicio: this.extractField(
         rawText,
-        /Origen\s*(?:del\s*)?[Ss]ervicio[^:]*:\s*(.+?)(?:\n|$)/i,
+        /Origen\s*(?:del\s*)?[Ss]ervicio[^:]{0,200}:\s*(.+?)(?:\n|$)/i,
       ),
       servicios: this.extractServicios(rawText),
       tipoRecaudo: this.extractField(
         rawText,
-        /Tipo\s*(?:de\s*)?Recaudo[^:]*:\s*(.+?)(?:\s+Valor|\n|$)/i,
+        /Tipo\s*(?:de\s*)?Recaudo[^:]{0,200}:\s*(.+?)(?:\s+Valor|\n|$)/i,
       ),
       copago: this.extractNumber(
         rawText,
-        /(?:Valor|Copago)[^:]*:\s*(\d[\d.,]*)/i,
+        /(?:Valor|Copago)[^:]{0,200}:\s*(\d[\d.,]*)/i,
       ),
-      porcentaje: this.extractNumber(rawText, /Porcentaje[^:]*:\s*(\d+)/i),
+      porcentaje: this.extractNumber(
+        rawText,
+        /Porcentaje[^:]{0,200}:\s*(\d+)/i,
+      ),
       valorMaximo: this.extractNumber(
         rawText,
-        /(?:Valor\s*)?M[aá]ximo[^:]*:\s*(\d[\d.,]*)/i,
+        /(?:Valor\s*)?M[aá]ximo[^:]{0,200}:\s*(\d[\d.,]*)/i,
       ),
       semanasCotizadas: this.extractNumber(
         rawText,
-        /Semanas\s*Cotizadas[^:]*:\s*(\d+)/i,
+        /Semanas\s*Cotizadas[^:]{0,200}:\s*(\d+)/i,
       ),
     };
   }
@@ -128,7 +134,7 @@ export class SaludTotalParser implements IEPSParser {
   }
 
   private extractEpsNombre(text: string): string {
-    const match = text.match(/Nombre[^:]*:\s*(Salud Total[^\n]*)/i);
+    const match = text.match(/Nombre[^:]{0,200}:\s*(Salud Total[^\n]*)/i);
     return match?.[1]?.trim() ?? 'Salud Total EPS';
   }
 
@@ -140,7 +146,7 @@ export class SaludTotalParser implements IEPSParser {
   private extractDiagnostico(text: string): string {
     // Buscar patrón CIE-10: letra + números con punto opcional
     const match = text.match(
-      /Diagn[oó]stico[^:]*:\s*(?:.*?)([A-Z]\d{2}\.?\d*)/i,
+      /Diagn[oó]stico[^:]{0,200}:\s*(?:.*?)([A-Z]\d{2}\.?\d*)/i,
     );
     return match?.[1] ?? '';
   }
