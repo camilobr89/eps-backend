@@ -2,72 +2,63 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { AppointmentsService } from '@/modules/appointments/appointments.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import {
+  createMockPrismaService,
+  createMockAppointment,
+  createMockFamilyMember,
+} from '../../../utils/mock-factories';
+import {
+  clearAllMocks,
+  testShouldBeDefined,
+  testNotFoundError,
+} from '../../../utils/test-helpers';
+import {
+  buildAppointmentCreateDto,
+  TEST_CONSTANTS,
+} from '../../../utils/test-data-builders';
 
-const mockPrisma = {
-  appointment: {
-    create: jest.fn(),
-    findMany: jest.fn(),
-    findUnique: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-  },
-  authorization: {
-    findUnique: jest.fn(),
-    update: jest.fn(),
-  },
-  familyMember: {
-    findFirst: jest.fn(),
-    findMany: jest.fn(),
-  },
-};
+const mockPrisma = createMockPrismaService();
 
-const userId = 'user-uuid-1';
-const memberId = 'member-uuid-1';
-const appointmentId = 'appt-uuid-1';
-const authorizationId = 'auth-uuid-1';
+const { USER_ID, MEMBER_ID, APPOINTMENT_ID, AUTHORIZATION_ID } = TEST_CONSTANTS;
+const userId = USER_ID;
+const memberId = MEMBER_ID;
+const appointmentId = APPOINTMENT_ID;
+const authorizationId = AUTHORIZATION_ID;
 
-const mockMember = { id: memberId, userId, fullName: 'Test Member' };
+const mockMember = createMockFamilyMember({
+  id: MEMBER_ID,
+  userId: USER_ID,
+  fullName: 'Test Member',
+});
 
-const mockAppointment = {
+const mockAppointment = createMockAppointment({
   id: appointmentId,
   familyMemberId: memberId,
-  authorizationId: null,
-  authorizationServiceId: null,
-  appointmentDate: new Date('2026-03-15T10:00:00.000Z'),
-  location: 'Hospital San Ignacio',
-  doctorName: 'Dr. Mejía',
-  specialty: 'Neumología',
-  status: 'scheduled',
-  notes: null,
   familyMember: { id: memberId, fullName: 'Test Member', userId },
-  authorization: null,
-  authorizationService: null,
-};
+});
 
-const mockAppointmentWithAuth = {
-  ...mockAppointment,
+const mockAppointmentWithAuth = createMockAppointment({
+  id: appointmentId,
+  familyMemberId: memberId,
   authorizationId,
+  familyMember: { id: memberId, fullName: 'Test Member', userId },
   authorization: {
     id: authorizationId,
     documentType: 'orden_medica',
     status: 'scheduled',
     diagnosisDescription: 'Asma',
   },
-};
+});
 
-const createDto = {
+const createDto = buildAppointmentCreateDto({
   familyMemberId: memberId,
-  appointmentDate: '2026-03-15T10:00:00.000Z',
-  location: 'Hospital San Ignacio',
-  doctorName: 'Dr. Mejía',
-  specialty: 'Neumología',
-};
+});
 
 describe('AppointmentsService', () => {
   let service: AppointmentsService;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

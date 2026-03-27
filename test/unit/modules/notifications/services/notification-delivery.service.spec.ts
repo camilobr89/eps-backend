@@ -3,6 +3,11 @@ import { NotificationDeliveryService } from '@/modules/notifications/services/no
 import { PrismaService } from '@/prisma/prisma.service';
 import { EmailService } from '@/modules/notifications/services/email.service';
 import { NotificationType, DeliveryMethod } from '@prisma/client';
+import {
+  buildExpirationWarningData,
+  buildAppointmentReminderData,
+  buildOcrCompletionData,
+} from '../../../../utils/test-data-builders';
 
 const mockPrismaService = {
   user: {
@@ -47,17 +52,7 @@ describe('NotificationDeliveryService', () => {
   describe('sendNotification', () => {
     const userId = 'user-123';
     const type = NotificationType.expiration_warning;
-    const data = {
-      title: 'Authorization Expiring',
-      message: 'Your authorization is expiring soon',
-      relatedEntityType: 'authorization',
-      relatedEntityId: 'auth-456',
-      authorizationNumber: 'AUTH-789',
-      expirationDate: '2024-12-31',
-      daysRemaining: 7,
-      familyMemberName: 'Jane Doe',
-      epsName: 'Salud Total',
-    };
+    const data = buildExpirationWarningData();
 
     it('should send notification successfully via email', async () => {
       const mockUser = {
@@ -285,18 +280,7 @@ describe('NotificationDeliveryService', () => {
 
     it('should send appointment reminder notification', async () => {
       const appointmentType = NotificationType.appointment_reminder;
-      const appointmentData = {
-        title: 'Appointment Reminder',
-        message: 'You have an appointment tomorrow',
-        relatedEntityType: 'appointment',
-        relatedEntityId: 'appt-123',
-        appointmentDate: '2024-12-25',
-        appointmentTime: '10:00 AM',
-        location: 'Hospital Central',
-        doctorName: 'Dr. Smith',
-        specialty: 'Cardiology',
-        familyMemberName: 'Jane Doe',
-      };
+      const appointmentData = buildAppointmentReminderData();
       const mockUser = {
         id: userId,
         email: 'test@example.com',
@@ -343,17 +327,7 @@ describe('NotificationDeliveryService', () => {
 
     it('should send OCR completion notification', async () => {
       const ocrType = NotificationType.ocr_completed;
-      const ocrData = {
-        title: 'OCR Processing Complete',
-        message: 'Your document has been processed',
-        relatedEntityType: 'document',
-        relatedEntityId: 'doc-123',
-        fileName: 'document.pdf',
-        authorizationNumber: 'AUTH-456',
-        familyMemberName: 'Jane Doe',
-        confidenceScore: 0.85,
-        documentId: 'doc-123',
-      };
+      const ocrData = buildOcrCompletionData();
       const mockUser = {
         id: userId,
         email: 'test@example.com',

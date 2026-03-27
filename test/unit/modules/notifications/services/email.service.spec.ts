@@ -1,5 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmailService } from '@/modules/notifications/services/email.service';
+import {
+  buildEmailExpirationWarningData,
+  buildEmailAppointmentReminderData,
+  buildEmailOcrCompletionData,
+} from '../../../../utils/test-data-builders';
 
 // Create a mock Resend instance
 const mockResendInstance = {
@@ -41,15 +46,10 @@ describe('EmailService', () => {
 
   describe('sendAuthorizationExpirationReminder', () => {
     const to = 'test@example.com';
-    const data = {
-      recipientName: 'John Doe',
+    const data = buildEmailExpirationWarningData({
       authorizationNumber: 'AUTH-123',
-      expirationDate: '2024-12-31',
-      daysRemaining: 7,
-      familyMemberName: 'Jane Doe',
-      epsName: 'Salud Total',
       authorizationId: 'auth-123',
-    };
+    });
 
     it('should send email successfully and return true', async () => {
       const mockResponse = { id: 'email-123' };
@@ -110,16 +110,9 @@ describe('EmailService', () => {
 
   describe('sendAppointmentReminder', () => {
     const to = 'test@example.com';
-    const data = {
-      recipientName: 'John Doe',
-      appointmentDate: '2024-12-25',
-      appointmentTime: '10:00 AM',
-      location: 'Hospital Central',
-      doctorName: 'Dr. Smith',
-      specialty: 'Cardiology',
-      familyMemberName: 'Jane Doe',
+    const data = buildEmailAppointmentReminderData({
       appointmentId: 'appt-456',
-    };
+    });
 
     it('should send appointment reminder email successfully', async () => {
       const mockResponse = { id: 'email-456' };
@@ -171,14 +164,7 @@ describe('EmailService', () => {
 
   describe('sendOcrCompletionNotification', () => {
     const to = 'test@example.com';
-    const data = {
-      recipientName: 'John Doe',
-      fileName: 'document.pdf',
-      authorizationNumber: 'AUTH-789',
-      familyMemberName: 'Jane Doe',
-      confidenceScore: 0.85,
-      documentId: 'doc-123',
-    };
+    const data = buildEmailOcrCompletionData();
 
     it('should send OCR completion email successfully with high confidence', async () => {
       const mockResponse = { id: 'email-789' };
