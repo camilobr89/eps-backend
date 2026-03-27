@@ -1,70 +1,45 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { FamilyMembersService } from '@/modules/family-members/family-members.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import {
+  createMockPrismaService,
+  createMockFamilyMember,
+} from '../../../utils/mock-factories';
+import { createServiceTestSetup } from '../../../utils/test-helpers';
+import {
+  buildFamilyMemberCreateDto,
+  TEST_CONSTANTS,
+} from '../../../utils/test-data-builders';
 
-const mockPrismaService = {
-  familyMember: {
-    create: jest.fn(),
-    findMany: jest.fn(),
-    findFirst: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-  },
+const mockPrismaService = createMockPrismaService();
+
+const { USER_ID, MEMBER_ID, EPS_PROVIDER_ID } = TEST_CONSTANTS;
+const userId = USER_ID;
+
+const mockEpsProvider = {
+  id: EPS_PROVIDER_ID,
+  name: 'EPS Sura',
+  code: 'EPS001',
 };
 
-const userId = 'user-uuid-1';
-
-const mockEpsProvider = { id: 'eps-uuid-1', name: 'EPS Sura', code: 'EPS001' };
-
-const mockMember = {
-  id: 'member-uuid-1',
-  userId,
-  fullName: 'John Doe',
-  documentType: 'CC',
-  documentNumber: '123456789',
-  birthDate: new Date('1990-01-15'),
-  address: 'Calle 123',
-  phone: '1234567',
-  cellphone: '3001234567',
-  email: 'john@example.com',
-  department: 'Antioquia',
-  city: 'Medellín',
-  regime: 'Contributivo',
-  relationship: 'Hijo',
+const mockMember = createMockFamilyMember({
+  id: MEMBER_ID,
+  userId: USER_ID,
   epsProvider: mockEpsProvider,
-};
+});
 
-const createDto = {
-  epsProviderId: 'eps-uuid-1',
-  fullName: 'John Doe',
-  documentType: 'CC' as const,
-  documentNumber: '123456789',
-  birthDate: '1990-01-15',
-  address: 'Calle 123',
-  phone: '1234567',
-  cellphone: '3001234567',
-  email: 'john@example.com',
-  department: 'Antioquia',
-  city: 'Medellín',
-  regime: 'Contributivo',
-  relationship: 'Hijo',
-};
+const createDto = buildFamilyMemberCreateDto({
+  epsProviderId: EPS_PROVIDER_ID,
+});
 
 describe('FamilyMembersService', () => {
   let service: FamilyMembersService;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        FamilyMembersService,
-        { provide: PrismaService, useValue: mockPrismaService },
-      ],
-    }).compile();
-
-    service = module.get<FamilyMembersService>(FamilyMembersService);
+    const setup = await createServiceTestSetup(FamilyMembersService, [
+      { provide: PrismaService, useValue: mockPrismaService },
+    ]);
+    service = setup.service;
   });
 
   it('should be defined', () => {

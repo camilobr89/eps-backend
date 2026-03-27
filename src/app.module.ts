@@ -11,6 +11,7 @@ import { AuthorizationsModule } from './modules/authorizations/authorizations.mo
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { DocumentsModule } from './modules/documents/documents.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { DocumentsModule } from './modules/documents/documents.module';
     AppointmentsModule,
     DashboardModule,
     DocumentsModule,
+    NotificationsModule,
   ],
 })
 export class AppModule {}

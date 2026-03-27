@@ -9,7 +9,7 @@ on:
 
 jobs:
   pipeline:
-    uses: my-banking-app/ci-templates/.github/workflows/nest-db-ci-cd.yml@v1.2.1
+    uses: my-banking-app/ci-templates/.github/workflows/nest-db-ci-cd.yml@v1.2.6
     with:
       service-name: "EPS Backend"
       docker-image-name: "eps-backend"
@@ -34,3 +34,4 @@ jobs:
       MINIO_PORT: ${{ secrets.MINIO_PORT }}
       MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
       MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}

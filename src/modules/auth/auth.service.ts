@@ -3,6 +3,7 @@ import {
   ConflictException,
   UnauthorizedException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -10,6 +11,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../common/redis/redis.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 
 @Injectable()
 export class AuthService {
@@ -76,7 +78,7 @@ export class AuthService {
     const payload = { sub: user.id, email: user.email };
 
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: '15m',
+      expiresIn: '1h',
     });
 
     const refreshToken = this.jwtService.sign(payload, {
@@ -112,7 +114,7 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(
       { sub: payload.sub, email: payload.email },
-      { expiresIn: '15m' },
+      { expiresIn: '1h' },
     );
 
     return { accessToken };
@@ -121,5 +123,52 @@ export class AuthService {
   async logout(userId: string) {
     await this.redis.del(`refresh:${userId}`);
     this.logger.log(`User ${userId} logged out`);
+  }
+
+  async updatePreferences(userId: string, dto: UpdateUserPreferencesDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        phone: dto.phone,
+        emailNotifications: dto.emailNotifications,
+      },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        phone: true,
+        emailNotifications: true,
+      },
+    });
+  }
+
+  async getUserProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        phone: true,
+        emailNotifications: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
   }
 }

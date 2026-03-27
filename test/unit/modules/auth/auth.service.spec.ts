@@ -132,7 +132,7 @@ describe('AuthService', () => {
       expect(mockJwtService.sign).toHaveBeenCalledTimes(2);
       expect(mockJwtService.sign).toHaveBeenCalledWith(
         { sub: 'uuid-1', email: 'test@example.com' },
-        { expiresIn: '15m' },
+        { expiresIn: '1h' },
       );
       expect(mockJwtService.sign).toHaveBeenCalledWith(
         { sub: 'uuid-1', email: 'test@example.com' },
@@ -206,7 +206,7 @@ describe('AuthService', () => {
       expect(mockRedisService.get).toHaveBeenCalledWith('refresh:uuid-1');
       expect(mockJwtService.sign).toHaveBeenCalledWith(
         { sub: 'uuid-1', email: 'test@example.com' },
-        { expiresIn: '15m' },
+        { expiresIn: '1h' },
       );
     });
 

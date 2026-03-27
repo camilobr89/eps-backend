@@ -1,37 +1,33 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { FamilyMembersController } from '@/modules/family-members/family-members.controller';
 import { FamilyMembersService } from '@/modules/family-members/family-members.service';
+import {
+  createMockService,
+  createMockFamilyMember,
+} from '../../../utils/mock-factories';
+import { createControllerTestSetup } from '../../../utils/test-helpers';
+import { TEST_CONSTANTS } from '../../../utils/test-data-builders';
 
-const mockService = {
-  create: jest.fn(),
-  findAll: jest.fn(),
-  findOne: jest.fn(),
-  update: jest.fn(),
-  remove: jest.fn(),
-};
+const mockService = createMockService();
 
-const user = { id: 'user-uuid-1' };
+const { USER_ID, MEMBER_ID } = TEST_CONSTANTS;
+const user = { id: USER_ID };
 
-const mockMember = {
-  id: 'member-uuid-1',
-  userId: user.id,
+const mockMember = createMockFamilyMember({
+  id: MEMBER_ID,
+  userId: USER_ID,
   fullName: 'John Doe',
   relationship: 'Hijo',
   epsProvider: { id: 'eps-1', name: 'EPS Sura', code: 'EPS001' },
-};
+});
 
 describe('FamilyMembersController', () => {
   let controller: FamilyMembersController;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
-
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [FamilyMembersController],
-      providers: [{ provide: FamilyMembersService, useValue: mockService }],
-    }).compile();
-
-    controller = module.get<FamilyMembersController>(FamilyMembersController);
+    const setup = await createControllerTestSetup(FamilyMembersController, [
+      { provide: FamilyMembersService, useValue: mockService },
+    ]);
+    controller = setup.controller;
   });
 
   it('should be defined', () => {

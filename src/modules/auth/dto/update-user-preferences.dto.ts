@@ -1,0 +1,23 @@
+import { IsOptional, IsBoolean, IsString, Matches } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+
+export class UpdateUserPreferencesDto {
+  @ApiPropertyOptional({
+    description: 'Phone number',
+    example: '+573001234567',
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(/^\+[1-9]\d{1,14}$/, {
+    message: 'Phone number must be in E.164 format (e.g., +573001234567)',
+  })
+  phone?: string;
+
+  @ApiPropertyOptional({
+    description: 'Enable email notifications',
+    default: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  emailNotifications?: boolean;
+}
