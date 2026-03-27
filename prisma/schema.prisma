@@ -56,6 +56,12 @@ enum NotificationType {
   ocr_failed
 }
 
+enum DeliveryMethod {
+  email
+  whatsapp
+  both
+}
+
 /* Models */
 
 model User {
@@ -63,8 +69,11 @@ model User {
   email String @unique @db.VarChar(255)
   passwordHash String @map("password_hash") @db.VarChar(255)
   fullName String @map("full_name") @db.VarChar(200)
-  isActive Boolean @default(true) @map("is_active")
+  phone String? @db.VarChar(20)
+  whatsappNumber String? @map("whatsapp_number") @db.VarChar(20)
   emailNotifications Boolean @default(true) @map("email_notifications")
+  whatsappNotifications Boolean @default(false) @map("whatsapp_notifications")
+  isActive Boolean @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -240,6 +249,11 @@ model Notification {
   title             String?           @db.VarChar(200)
   message           String?
   type              NotificationType?
+  deliveryMethod    DeliveryMethod?   @map("delivery_method") @default(email)
+  emailSent         Boolean           @default(false) @map("email_sent")
+  whatsappSent      Boolean           @default(false) @map("whatsapp_sent")
+  emailError        String?           @map("email_error")
+  whatsappError     String?           @map("whatsapp_error")
   relatedEntityType String?           @map("related_entity_type") @db.VarChar(30)
   relatedEntityId   String?           @map("related_entity_id") @db.Uuid
   read              Boolean           @default(false)
