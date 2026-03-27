@@ -1,4 +1,3 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { FamilyMembersService } from '@/modules/family-members/family-members.service';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -6,10 +5,7 @@ import {
   createMockPrismaService,
   createMockFamilyMember,
 } from '../../../utils/mock-factories';
-import {
-  clearAllMocks,
-  createServiceTestSetup,
-} from '../../../utils/test-helpers';
+import { createServiceTestSetup } from '../../../utils/test-helpers';
 import {
   buildFamilyMemberCreateDto,
   TEST_CONSTANTS,

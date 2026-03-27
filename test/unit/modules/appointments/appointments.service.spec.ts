@@ -7,11 +7,7 @@ import {
   createMockAppointment,
   createMockFamilyMember,
 } from '../../../utils/mock-factories';
-import {
-  clearAllMocks,
-  testShouldBeDefined,
-  testNotFoundError,
-} from '../../../utils/test-helpers';
+import { clearAllMocks } from '../../../utils/test-helpers';
 import {
   buildAppointmentCreateDto,
   TEST_CONSTANTS,
