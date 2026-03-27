@@ -138,18 +138,14 @@ export class AuthService {
       where: { id: userId },
       data: {
         phone: dto.phone,
-        whatsappNumber: dto.whatsappNumber,
         emailNotifications: dto.emailNotifications,
-        whatsappNotifications: dto.whatsappNotifications,
       },
       select: {
         id: true,
         email: true,
         fullName: true,
         phone: true,
-        whatsappNumber: true,
         emailNotifications: true,
-        whatsappNotifications: true,
       },
     });
   }
@@ -162,9 +158,7 @@ export class AuthService {
         email: true,
         fullName: true,
         phone: true,
-        whatsappNumber: true,
         emailNotifications: true,
-        whatsappNotifications: true,
         isActive: true,
         createdAt: true,
         updatedAt: true,

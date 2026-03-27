@@ -5,7 +5,6 @@ import { NotificationsController } from './notifications.controller';
 import { NotificationsService } from './notifications.service';
 import { NotificationScheduler } from './notification-scheduler-v2';
 import { EmailService } from './services/email.service';
-import { WhatsAppService } from './services/whatsapp.service';
 import { NotificationDeliveryService } from './services/notification-delivery.service';
 
 @Module({
@@ -15,7 +14,6 @@ import { NotificationDeliveryService } from './services/notification-delivery.se
     NotificationsService,
     NotificationScheduler,
     EmailService,
-    WhatsAppService,
     NotificationDeliveryService,
   ],
   exports: [NotificationsService, NotificationDeliveryService],

@@ -51,29 +51,13 @@ export class NotificationScheduler {
       );
 
       for (const auth of authorizations) {
-        // Skip if user doesn't want any notifications
-        if (
-          !auth.familyMember.user.emailNotifications &&
-          !auth.familyMember.user.whatsappNotifications
-        ) {
+        // Skip if user doesn't want email notifications
+        if (!auth.familyMember.user.emailNotifications) {
           continue;
         }
 
-        // Determine delivery method based on user preferences
-        let deliveryMethod: DeliveryMethod;
-        if (
-          auth.familyMember.user.whatsappNotifications &&
-          auth.familyMember.user.whatsappNumber
-        ) {
-          // Priority to WhatsApp if enabled and number exists
-          deliveryMethod = DeliveryMethod.whatsapp;
-        } else if (auth.familyMember.user.emailNotifications) {
-          // Fallback to email if enabled
-          deliveryMethod = DeliveryMethod.email;
-        } else {
-          // Skip if no delivery method available
-          continue;
-        }
+        // Use email as the only delivery method
+        const deliveryMethod: DeliveryMethod = DeliveryMethod.email;
 
         // Format data for notification
         const notificationData = {
@@ -138,29 +122,13 @@ export class NotificationScheduler {
       );
 
       for (const appointment of appointments) {
-        // Skip if user doesn't want any notifications
-        if (
-          !appointment.familyMember.user.emailNotifications &&
-          !appointment.familyMember.user.whatsappNotifications
-        ) {
+        // Skip if user doesn't want email notifications
+        if (!appointment.familyMember.user.emailNotifications) {
           continue;
         }
 
-        // Determine delivery method based on user preferences
-        let deliveryMethod: DeliveryMethod;
-        if (
-          appointment.familyMember.user.whatsappNotifications &&
-          appointment.familyMember.user.whatsappNumber
-        ) {
-          // Priority to WhatsApp if enabled and number exists
-          deliveryMethod = DeliveryMethod.whatsapp;
-        } else if (appointment.familyMember.user.emailNotifications) {
-          // Fallback to email if enabled
-          deliveryMethod = DeliveryMethod.email;
-        } else {
-          // Skip if no delivery method available
-          continue;
-        }
+        // Use email as the only delivery method
+        const deliveryMethod: DeliveryMethod = DeliveryMethod.email;
 
         // Format data for notification
         const notificationData = {
@@ -236,8 +204,8 @@ export class NotificationScheduler {
     });
 
     for (const user of users) {
-      // Skip users with no notifications enabled
-      if (!user.emailNotifications && !user.whatsappNotifications) {
+      // Skip users with email notifications disabled
+      if (!user.emailNotifications) {
         continue;
       }
 
@@ -252,15 +220,8 @@ export class NotificationScheduler {
 
       // Only send summary if there are items
       if (expiringCount > 0 || appointmentCount > 0) {
-        // Determine delivery method
-        let deliveryMethod: DeliveryMethod;
-        if (user.whatsappNotifications && user.whatsappNumber) {
-          deliveryMethod = DeliveryMethod.whatsapp;
-        } else if (user.emailNotifications) {
-          deliveryMethod = DeliveryMethod.email;
-        } else {
-          continue;
-        }
+        // Use email as the only delivery method
+        const deliveryMethod: DeliveryMethod = DeliveryMethod.email;
 
         const summaryMessage = this.createDailySummaryMessage(
           user.fullName,

@@ -99,8 +99,8 @@ export class EmailService {
         </html>
       `;
 
-      await this.resend.emails.send({
-        from: 'EPS Notificaciones <notificaciones@eps-gestion.com>',
+      const result = await this.resend.emails.send({
+        from: 'EPS Notificaciones <onboarding@resend.dev>',
         to,
         subject,
         html,
@@ -109,6 +109,7 @@ export class EmailService {
       this.logger.log(
         `Email sent to ${to} for authorization ${data.authorizationId}`,
       );
+      this.logger.debug(`Resend response: ${JSON.stringify(result)}`);
       return true;
     } catch (error) {
       this.logger.error(`Failed to send email to ${to}:`, error);
@@ -214,8 +215,8 @@ export class EmailService {
         </html>
       `;
 
-      await this.resend.emails.send({
-        from: 'EPS Notificaciones <notificaciones@eps-gestion.com>',
+      const result = await this.resend.emails.send({
+        from: 'EPS Notificaciones <onboarding@resend.dev>',
         to,
         subject,
         html,
@@ -224,6 +225,7 @@ export class EmailService {
       this.logger.log(
         `Appointment reminder email sent to ${to} for appointment ${data.appointmentId}`,
       );
+      this.logger.debug(`Resend response: ${JSON.stringify(result)}`);
       return true;
     } catch (error) {
       this.logger.error(`Failed to send appointment email to ${to}:`, error);
@@ -335,8 +337,8 @@ export class EmailService {
         </html>
       `;
 
-      await this.resend.emails.send({
-        from: 'EPS Notificaciones <notificaciones@eps-gestion.com>',
+      const result = await this.resend.emails.send({
+        from: 'EPS Notificaciones <onboarding@resend.dev>',
         to,
         subject,
         html,
@@ -345,6 +347,7 @@ export class EmailService {
       this.logger.log(
         `OCR completion email sent to ${to} for document ${data.documentId}`,
       );
+      this.logger.debug(`Resend response: ${JSON.stringify(result)}`);
       return true;
     } catch (error) {
       this.logger.error(`Failed to send OCR email to ${to}:`, error);

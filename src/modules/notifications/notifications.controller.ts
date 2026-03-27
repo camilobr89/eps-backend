@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Post,
   Put,
   Param,
   Query,
@@ -17,17 +18,26 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
+import {
+  NotificationDeliveryService,
+  NotificationData,
+} from './services/notification-delivery.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { FilterNotificationsDto } from './dto/filter-notifications.dto';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+import { NotificationType } from '@prisma/client';
+import { randomUUID } from 'crypto';
 
 @Controller('notifications')
 @ApiTags('Notifications')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class NotificationsController {
-  constructor(private readonly notificationsService: NotificationsService) {}
+  constructor(
+    private readonly notificationsService: NotificationsService,
+    private readonly notificationDeliveryService: NotificationDeliveryService,
+  ) {}
 
   @Get()
   @ApiOperation({
@@ -94,6 +104,114 @@ export class NotificationsController {
     @CurrentUser() user: { id: string },
   ) {
     return this.notificationsService.markAsRead(user.id, id);
+  }
+
+  @Post('test')
+  @ApiOperation({ summary: 'Send a test notification' })
+  @ApiQuery({
+    name: 'type',
+    enum: NotificationType,
+    required: false,
+    description: 'Type of test notification to send',
+    example: NotificationType.appointment_reminder,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Test notification sent successfully',
+    schema: {
+      example: {
+        success: true,
+        message: 'Test notification sent',
+        notificationId: '123e4567-e89b-12d3-a456-426614174000',
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async sendTestNotification(
+    @CurrentUser() user: { id: string },
+    @Query('type')
+    type: NotificationType = NotificationType.appointment_reminder,
+  ) {
+    // Base data for all notification types
+    const baseData = {
+      title: 'Notificación de prueba',
+      message: 'Esta es una notificación de prueba enviada manualmente.',
+      familyMemberName: 'Paciente de Prueba',
+      relatedEntityId: randomUUID(),
+    };
+
+    // Type-specific data
+    let testData: NotificationData = { ...baseData };
+
+    switch (type) {
+      case NotificationType.expiration_warning:
+        testData = {
+          ...testData,
+          authorizationNumber: 'AUT-' + Date.now().toString().slice(-6),
+          expirationDate: new Date(
+            Date.now() + 7 * 24 * 60 * 60 * 1000,
+          ).toLocaleDateString('es-CO'),
+          daysRemaining: 7,
+          epsName: 'EPS de Prueba',
+          relatedEntityType: 'authorization',
+        };
+        break;
+
+      case NotificationType.appointment_reminder:
+        testData = {
+          ...testData,
+          appointmentDate: new Date().toLocaleDateString('es-CO'),
+          appointmentTime: new Date().toLocaleTimeString('es-CO', {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          location: 'Centro Médico de Prueba',
+          doctorName: 'Dr. Prueba',
+          specialty: 'Medicina General',
+          relatedEntityType: 'appointment',
+        };
+        break;
+
+      case NotificationType.ocr_completed:
+        testData = {
+          ...testData,
+          fileName: 'documento_prueba.pdf',
+          authorizationNumber: 'AUT-' + Date.now().toString().slice(-6),
+          confidenceScore: 95.5,
+          relatedEntityType: 'document',
+        };
+        break;
+
+      default:
+        // Use appointment reminder as default
+        testData = {
+          ...testData,
+          appointmentDate: new Date().toLocaleDateString('es-CO'),
+          appointmentTime: new Date().toLocaleTimeString('es-CO', {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          location: 'Centro Médico de Prueba',
+          doctorName: 'Dr. Prueba',
+          specialty: 'Medicina General',
+          relatedEntityType: 'appointment',
+        };
+    }
+
+    const { success, notificationId } =
+      await this.notificationDeliveryService.sendNotification(
+        user.id,
+        type,
+        testData,
+      );
+
+    return {
+      success,
+      notificationId,
+      message: success
+        ? 'Test notification sent successfully'
+        : 'Failed to send test notification',
+    };
   }
 
   @Put('read-all')
