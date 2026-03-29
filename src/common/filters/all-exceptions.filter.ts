@@ -45,7 +45,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
       return this.handlePrismaError(exception, path);
     }
 
-    // 3. Errores no controlados → 500 genérico
+    // 3. Errores de Express/body-parser (PayloadTooLargeError, etc.)
+    if (this.isExpressError(exception)) {
+      const err = exception as { status: number; message: string };
+      return {
+        statusCode: err.status,
+        message: err.message,
+        timestamp: new Date().toISOString(),
+        path,
+      };
+    }
+
+    // 4. Errores no controlados → 500 genérico
     return {
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'Internal server error',
@@ -101,6 +112,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
         message: msg,
       };
     });
+  }
+
+  private isExpressError(exception: unknown): boolean {
+    if (typeof exception !== 'object' || exception === null) return false;
+    const err = exception as { status?: unknown; type?: unknown };
+    return typeof err.status === 'number' && err.status >= 400 && err.status < 600;
   }
 
   private isPrismaError(
