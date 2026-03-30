@@ -1,8 +1,9 @@
 import { IsOptional, IsEnum, IsUUID, IsDateString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { AppointmentStatus } from '.prisma/client';
+import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 
-export class FilterAppointmentDto {
+export class FilterAppointmentDto extends PaginationQueryDto {
   @ApiPropertyOptional({
     example: '2024-01-01',
     description: 'Fecha inicial para filtrar (inclusive)',

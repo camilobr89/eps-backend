@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { FilterAppointmentDto } from './dto/filter-appointment.dto';
+import { createPaginatedResponse } from '../../common/dto/paginated-response.dto';
 import { Prisma } from '.prisma/client';
 
 const APPOINTMENT_INCLUDES = {
@@ -56,20 +57,31 @@ export class AppointmentsService {
 
   async findAll(userId: string, filters: FilterAppointmentDto) {
     const memberIds = await this.getUserFamilyMemberIds(userId);
+    const page = filters.page ?? 1;
+    const limit = filters.limit ?? 20;
 
-    if (memberIds.length === 0) return [];
+    if (memberIds.length === 0) {
+      return createPaginatedResponse([], 0, page, limit);
+    }
 
     if (filters.familyMemberId && !memberIds.includes(filters.familyMemberId)) {
-      return [];
+      return createPaginatedResponse([], 0, page, limit);
     }
 
     const where = this.buildWhereClause(memberIds, filters);
 
-    return this.prisma.appointment.findMany({
-      where,
-      include: APPOINTMENT_INCLUDES,
-      orderBy: { appointmentDate: 'desc' },
-    });
+    const [data, total] = await Promise.all([
+      this.prisma.appointment.findMany({
+        where,
+        include: APPOINTMENT_INCLUDES,
+        orderBy: { appointmentDate: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.appointment.count({ where }),
+    ]);
+
+    return createPaginatedResponse(data, total, page, limit);
   }
 
   async findUpcoming(userId: string) {

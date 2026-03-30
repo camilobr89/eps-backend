@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateFamilyMemberDto } from './dto/create-family-member.dto';
 import { UpdateFamilyMemberDto } from './dto/update-family-member.dto';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+import { createPaginatedResponse } from '../../common/dto/paginated-response.dto';
 
 @Injectable()
 export class FamilyMembersService {
@@ -25,12 +27,22 @@ export class FamilyMembersService {
     });
   }
 
-  async findAll(userId: string) {
-    return this.prisma.familyMember.findMany({
-      where: { userId },
-      include: this.includeEpsProvider,
-      orderBy: { fullName: 'asc' },
-    });
+  async findAll(userId: string, pagination: PaginationQueryDto) {
+    const page = pagination.page ?? 1;
+    const limit = pagination.limit ?? 20;
+
+    const [data, total] = await Promise.all([
+      this.prisma.familyMember.findMany({
+        where: { userId },
+        include: this.includeEpsProvider,
+        orderBy: { fullName: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.familyMember.count({ where: { userId } }),
+    ]);
+
+    return createPaginatedResponse(data, total, page, limit);
   }
 
   async findOne(id: string, userId: string) {

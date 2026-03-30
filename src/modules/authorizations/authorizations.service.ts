@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateAuthorizationDto } from './dto/create-authorization.dto';
 import { UpdateAuthorizationDto } from './dto/update-authorization.dto';
 import { FilterAuthorizationDto } from './dto/filter-authorization.dto';
+import { createPaginatedResponse } from '../../common/dto/paginated-response.dto';
 import { Prisma } from '.prisma/client';
 
 // Includes reutilizables para queries
@@ -39,22 +40,32 @@ export class AuthorizationsService {
 
   async findAll(userId: string, filters: FilterAuthorizationDto) {
     const memberIds = await this.getUserFamilyMemberIds(userId);
+    const page = filters.page ?? 1;
+    const limit = filters.limit ?? 20;
 
-    if (memberIds.length === 0) return [];
+    if (memberIds.length === 0) {
+      return createPaginatedResponse([], 0, page, limit);
+    }
 
     if (filters.familyMemberId && !memberIds.includes(filters.familyMemberId)) {
-      return [];
+      return createPaginatedResponse([], 0, page, limit);
     }
 
     const where = this.buildWhereClause(memberIds, filters);
 
-    const authorizations = await this.prisma.authorization.findMany({
-      where,
-      include: AUTHORIZATION_INCLUDES,
-      orderBy: { createdAt: 'desc' },
-    });
+    const [authorizations, total] = await Promise.all([
+      this.prisma.authorization.findMany({
+        where,
+        include: AUTHORIZATION_INCLUDES,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.authorization.count({ where }),
+    ]);
 
-    return this.applyAutoExpiration(authorizations);
+    const data = this.applyAutoExpiration(authorizations);
+    return createPaginatedResponse(data, total, page, limit);
   }
 
   async findOne(id: string, userId: string) {

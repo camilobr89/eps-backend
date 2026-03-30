@@ -48,8 +48,10 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('EPS Backend API')
-    .setDescription('API para gestión de EPS y carga de documentos')
+    .setTitle('Gestión EPS API')
+    .setDescription(
+      'API para gestión de autorizaciones médicas, citas y miembros de familia',
+    )
     .setVersion('1.0')
     .addBearerAuth()
     .build();
