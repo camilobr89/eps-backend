@@ -86,25 +86,33 @@ describe('FamilyMembersService', () => {
     it('should return all family members for a user ordered by name', async () => {
       const members = [mockMember];
       mockPrismaService.familyMember.findMany.mockResolvedValue(members);
+      mockPrismaService.familyMember.count.mockResolvedValue(1);
 
-      const result = await service.findAll(userId);
+      const result = await service.findAll(userId, { page: 1, limit: 20 });
 
-      expect(mockPrismaService.familyMember.findMany).toHaveBeenCalledWith({
-        where: { userId },
-        include: {
-          epsProvider: { select: { id: true, name: true, code: true } },
-        },
-        orderBy: { fullName: 'asc' },
-      });
-      expect(result).toEqual(members);
+      expect(mockPrismaService.familyMember.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { userId },
+          include: {
+            epsProvider: { select: { id: true, name: true, code: true } },
+          },
+          orderBy: { fullName: 'asc' },
+          skip: 0,
+          take: 20,
+        }),
+      );
+      expect(result.data).toEqual(members);
+      expect(result.meta.total).toBe(1);
     });
 
-    it('should return empty array when no members found', async () => {
+    it('should return empty paginated response when no members found', async () => {
       mockPrismaService.familyMember.findMany.mockResolvedValue([]);
+      mockPrismaService.familyMember.count.mockResolvedValue(0);
 
-      const result = await service.findAll(userId);
+      const result = await service.findAll(userId, { page: 1, limit: 20 });
 
-      expect(result).toEqual([]);
+      expect(result.data).toEqual([]);
+      expect(result.meta.total).toBe(0);
     });
   });
 

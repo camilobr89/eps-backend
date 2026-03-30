@@ -47,13 +47,18 @@ describe('FamilyMembersController', () => {
   });
 
   describe('findAll', () => {
-    it('should call service.findAll with user id', async () => {
-      mockService.findAll.mockResolvedValue([mockMember]);
+    it('should call service.findAll with user id and pagination', async () => {
+      const pagination = { page: 1, limit: 20 };
+      const paginatedResult = {
+        data: [mockMember],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1, hasNextPage: false, hasPreviousPage: false },
+      };
+      mockService.findAll.mockResolvedValue(paginatedResult);
 
-      const result = await controller.findAll(user);
+      const result = await controller.findAll(user, pagination);
 
-      expect(mockService.findAll).toHaveBeenCalledWith(user.id);
-      expect(result).toEqual([mockMember]);
+      expect(mockService.findAll).toHaveBeenCalledWith(user.id, pagination);
+      expect(result).toEqual(paginatedResult);
     });
   });
 
