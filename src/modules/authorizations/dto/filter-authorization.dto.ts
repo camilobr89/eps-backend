@@ -1,8 +1,9 @@
 import { IsOptional, IsEnum, IsUUID, IsDateString } from 'class-validator';
 import { AuthorizationStatus, Priority } from '.prisma/client';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 
-export class FilterAuthorizationDto {
+export class FilterAuthorizationDto extends PaginationQueryDto {
   @ApiPropertyOptional({
     example: 'pending',
     description: 'Estado de la autorización',

@@ -6,9 +6,10 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiBody, ApiQuery } from '@nestjs/swagger';
 import { FamilyMembersService } from './family-members.service';
 import { CreateFamilyMemberDto } from './dto/create-family-member.dto';
 import { UpdateFamilyMemberDto } from './dto/update-family-member.dto';
@@ -22,6 +23,7 @@ import {
   ApiUnauthorizedResponse,
 } from '../../common/decorators/api-responses.decorator';
 import { ExampleSchemas } from '../../common/schemas/examples';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @Controller('family-members')
 @ApiController('FamilyMembers')
@@ -50,12 +52,16 @@ export class FamilyMembersController {
   @ApiOperation({
     summary: 'Obtener todos los familiares',
     description:
-      'Retorna una lista de todos los familiares asociados al usuario autenticado.',
+      'Retorna una lista paginada de todos los familiares asociados al usuario autenticado.',
   })
+  @ApiQuery({ type: PaginationQueryDto })
   @ApiOkResponse(ExampleSchemas.familyMemberList)
   @ApiUnauthorizedResponse()
-  findAll(@CurrentUser() user: { id: string }) {
-    return this.familyMembersService.findAll(user.id);
+  findAll(
+    @CurrentUser() user: { id: string },
+    @Query() pagination: PaginationQueryDto,
+  ) {
+    return this.familyMembersService.findAll(user.id, pagination);
   }
 
   @Get(':id')

@@ -127,34 +127,39 @@ describe('AppointmentsService', () => {
     it('should return appointments for user family members', async () => {
       mockPrisma.familyMember.findMany.mockResolvedValue([{ id: memberId }]);
       mockPrisma.appointment.findMany.mockResolvedValue([mockAppointment]);
+      mockPrisma.appointment.count.mockResolvedValue(1);
 
       const result = await service.findAll(userId, {});
 
-      expect(result).toHaveLength(1);
+      expect(result.data).toHaveLength(1);
+      expect(result.meta.total).toBe(1);
     });
 
-    it('should return empty array if user has no family members', async () => {
+    it('should return empty paginated response if user has no family members', async () => {
       mockPrisma.familyMember.findMany.mockResolvedValue([]);
 
       const result = await service.findAll(userId, {});
 
-      expect(result).toEqual([]);
+      expect(result.data).toEqual([]);
+      expect(result.meta.total).toBe(0);
       expect(mockPrisma.appointment.findMany).not.toHaveBeenCalled();
     });
 
-    it('should return empty array if filtering by unowned family member', async () => {
+    it('should return empty paginated response if filtering by unowned family member', async () => {
       mockPrisma.familyMember.findMany.mockResolvedValue([{ id: memberId }]);
 
       const result = await service.findAll(userId, {
         familyMemberId: 'other-member',
       });
 
-      expect(result).toEqual([]);
+      expect(result.data).toEqual([]);
+      expect(result.meta.total).toBe(0);
     });
 
     it('should apply status filter', async () => {
       mockPrisma.familyMember.findMany.mockResolvedValue([{ id: memberId }]);
       mockPrisma.appointment.findMany.mockResolvedValue([]);
+      mockPrisma.appointment.count.mockResolvedValue(0);
 
       await service.findAll(userId, { status: 'scheduled' as any });
 
@@ -165,6 +170,7 @@ describe('AppointmentsService', () => {
     it('should apply dateFrom filter', async () => {
       mockPrisma.familyMember.findMany.mockResolvedValue([{ id: memberId }]);
       mockPrisma.appointment.findMany.mockResolvedValue([]);
+      mockPrisma.appointment.count.mockResolvedValue(0);
 
       await service.findAll(userId, { dateFrom: '2026-03-01' });
 
@@ -175,6 +181,7 @@ describe('AppointmentsService', () => {
     it('should apply dateTo filter', async () => {
       mockPrisma.familyMember.findMany.mockResolvedValue([{ id: memberId }]);
       mockPrisma.appointment.findMany.mockResolvedValue([]);
+      mockPrisma.appointment.count.mockResolvedValue(0);
 
       await service.findAll(userId, { dateTo: '2026-03-31' });
 
@@ -185,6 +192,7 @@ describe('AppointmentsService', () => {
     it('should apply both dateFrom and dateTo filters', async () => {
       mockPrisma.familyMember.findMany.mockResolvedValue([{ id: memberId }]);
       mockPrisma.appointment.findMany.mockResolvedValue([]);
+      mockPrisma.appointment.count.mockResolvedValue(0);
 
       await service.findAll(userId, {
         dateFrom: '2026-03-01',
