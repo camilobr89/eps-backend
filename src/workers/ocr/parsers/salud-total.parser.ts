@@ -143,7 +143,7 @@ export class SaludTotalParser implements IEPSParser {
   private extractUbicacion(text: string): string {
     return (
       // reversed
-      this.extractField(text, /(\w+)Ubicaci[oó]n\s+paciente\s*:/i) ||
+      this.extractField(text, /(\w{1,50})Ubicaci[oó]n\s+paciente\s*:/i) ||
       // normal
       this.extractField(
         text,
