@@ -100,6 +100,7 @@ export class OcrProcessor extends WorkerHost {
   ) {
     // Mapeo: campo del parser → campo de Prisma + límite
     const fieldMap: Array<[keyof OrdenDireccionamiento, string, number?]> = [
+      ['tipoDocumento', 'documentType', 50],
       ['numeroSolicitud', 'requestNumber', 50],
       ['fechaHoraEmision', 'issuingDate'],
       ['fechaVencimiento', 'expirationDate'],
