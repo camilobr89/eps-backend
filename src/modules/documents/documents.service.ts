@@ -4,6 +4,7 @@ import { Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MinioService } from '../../modules/minio/minio.service';
 import { randomUUID } from 'crypto';
+import { Priority, AuthorizationStatus } from '.prisma/client';
 
 @Injectable()
 export class DocumentsService {
@@ -44,6 +45,57 @@ export class DocumentsService {
     });
 
     return document;
+  }
+
+  async uploadAndCreate(
+    userId: string,
+    familyMemberId: string,
+    file: Express.Multer.File,
+  ) {
+    // Verify the family member belongs to the authenticated user
+    const familyMember = await this.prisma.familyMember.findFirst({
+      where: { id: familyMemberId, userId },
+    });
+
+    if (!familyMember) {
+      throw new NotFoundException('Family member not found');
+    }
+
+    // Create a draft authorization that OCR will populate
+    const authorization = await this.prisma.authorization.create({
+      data: {
+        familyMemberId,
+        epsProviderId: familyMember.epsProviderId ?? undefined,
+        documentType: 'pendiente_ocr',
+        status: AuthorizationStatus.pending,
+        priority: Priority.normal,
+        manuallyReviewed: false,
+      },
+    });
+
+    const ext = this.getFileExtension(file.originalname);
+    const fileKey = `${userId}/${authorization.id}/${randomUUID()}.${ext}`;
+
+    await this.minio.uploadFile(fileKey, file.buffer, file.mimetype);
+
+    const document = await this.prisma.document.create({
+      data: {
+        authorizationId: authorization.id,
+        fileName: file.originalname,
+        fileUrl: fileKey,
+        fileType: file.mimetype,
+        fileSizeBytes: file.size,
+        ocrStatus: 'pending',
+      },
+    });
+
+    await this.ocrQueue.add('process-ocr', {
+      documentId: document.id,
+      fileKey,
+      authorizationId: authorization.id,
+    });
+
+    return { authorization, document };
   }
 
   async getDownloadUrl(id: string, userId: string) {
