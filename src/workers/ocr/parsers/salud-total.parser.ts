@@ -348,14 +348,15 @@ export class SaludTotalParser implements IEPSParser {
   private extractServicios(text: string): ServicioDireccionado[] {
     const servicios: ServicioDireccionado[] = [];
 
-    // Pattern: 8-10 digit code + space + quantity + space + description
+    // Matches both exam codes (8-10 digits, e.g. 8902820200) and medication
+    // codes (4-5 digits, e.g. 8121). The optional (CMD X)- prefix is stripped
+    // from the captured name. Order numbers (e.g. 33719-2555301849) are not
+    // matched because those digits are followed by '-' not whitespace.
     const regex =
-      /(\d{8,10})\s+(\d{1,3})\s+(?:\([^)]{1,100}\)\s+)?([^\n]{5,200})(?=\n|$)/gi;
+      /(\d{4,10})\s+(\d{1,3})\s+(?:\([^)]{1,30}\)-\s*)?([^\n]{5,200})(?=\n|$)/gi;
     let match: RegExpExecArray | null;
 
     while ((match = regex.exec(text)) !== null) {
-      // Skip lines that look like order numbers (33719-2555301849 style)
-      if (match[0].includes('-')) continue;
       servicios.push({
         codigo: match[1],
         cantidad: parseInt(match[2], 10),
