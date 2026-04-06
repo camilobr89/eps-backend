@@ -143,7 +143,7 @@ export class SaludTotalParser implements IEPSParser {
   private extractUbicacion(text: string): string {
     return (
       // reversed
-      this.extractField(text, /(\w+)Ubicaci[oó]n\s+paciente\s*:/i) ||
+      this.extractField(text, /(\w{1,50})Ubicaci[oó]n\s+paciente\s*:/i) ||
       // normal
       this.extractField(
         text,
@@ -162,12 +162,12 @@ export class SaludTotalParser implements IEPSParser {
       // contextual: line before the merged Vencimiento+Regimen line
       this.extractField(
         text,
-        /([^\n]+)\nFecha\s+Vencimiento\s*:[^\n]*Regimen\s*:/i,
+        /([^\n]{1,100})\nFecha\s+Vencimiento\s*:[^\n]{0,200}Regimen\s*:/i,
       ) ||
       // normal
       this.extractField(
         text,
-        /Origen\s+(?:del\s+)?[Ss]ervicio\s*:\s*([^\n]+)/i,
+        /Origen\s+(?:del\s+)?[Ss]ervicio\s*:\s*([^\n]{1,100})/i,
       )
     );
   }

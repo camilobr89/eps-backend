@@ -50,7 +50,7 @@ Motivo: CN Fecha Vencimiento: 24 May 2026
 Diagnóstico: E78.5
 Ubicación del Paciente: Consulta Externa No. Solicitud: 02242026025853
 Origen del servicio: Enfermedad general
-Tipo de Recaudo: Sin Cobro Valor: 0
+Tipo Recaudo: Sin Cobro  Valor: 0
 Semanas Cotizadas: 53`;
 
     it('should detect tipo documento as orden_direccionamiento', () => {
