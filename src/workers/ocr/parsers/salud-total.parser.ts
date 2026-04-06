@@ -48,7 +48,7 @@ export class SaludTotalParser implements IEPSParser {
       servicios: this.extractServicios(rawText),
       tipoRecaudo: this.extractField(
         rawText,
-        /Tipo\s+(?:de\s+)?Recaudo\s*:\s*([^\n]+?)(?:\s+Valor\s*:|\s{2,}|\n|$)/i,
+        /Tipo\s+Recaudo\s*:\s*([^\n]+?)(?:\s{2,}|\n|$)/i,
       ),
       copago: this.extractCopago(rawText),
       porcentaje: this.extractPorcentaje(rawText),
