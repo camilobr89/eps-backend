@@ -20,6 +20,7 @@ describe('AuthController', () => {
     login: jest.fn(),
     refresh: jest.fn(),
     logout: jest.fn(),
+    logoutByRefreshToken: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -76,7 +77,7 @@ describe('AuthController', () => {
       expect(result).toEqual({ accessToken: 'access-token' });
     });
 
-    it('should set refreshToken as httpOnly cookie', async () => {
+    it('should set refreshToken as httpOnly session cookie', async () => {
       mockAuthService.login.mockResolvedValue({
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
@@ -85,6 +86,7 @@ describe('AuthController', () => {
 
       await controller.login(loginDto, res as any);
 
+      const cookieOptions = (res.cookie as jest.Mock).mock.calls[0][2] as Record<string, unknown>;
       expect(res.cookie).toHaveBeenCalledWith(
         'refreshToken',
         'refresh-token',
@@ -92,9 +94,10 @@ describe('AuthController', () => {
           httpOnly: true,
           sameSite: 'strict',
           path: '/api/auth',
-          maxAge: 7 * 24 * 60 * 60 * 1000,
         }),
       );
+      expect(cookieOptions).not.toHaveProperty('maxAge');
+      expect(cookieOptions).not.toHaveProperty('expires');
     });
   });
 
@@ -138,21 +141,31 @@ describe('AuthController', () => {
   });
 
   describe('logout', () => {
-    it('should call authService.logout and clear cookie', async () => {
-      const user = { id: 'uuid-1' };
+    it('should call authService.logoutByRefreshToken with cookie token and clear cookie', async () => {
+      const req = { cookies: { refreshToken: 'valid-refresh-token' } };
       const res = createMockResponse();
 
-      const result = await controller.logout(user, res as any);
+      const result = await controller.logout(req as any, res as any);
 
-      expect(mockAuthService.logout).toHaveBeenCalledWith('uuid-1');
+      expect(mockAuthService.logoutByRefreshToken).toHaveBeenCalledWith('valid-refresh-token');
       expect(result).toEqual({ message: 'Logged out successfully' });
     });
 
-    it('should clear refreshToken cookie with correct options', async () => {
-      const user = { id: 'uuid-1' };
+    it('should still clear cookie even when no refresh token is present', async () => {
+      const req = { cookies: {} };
       const res = createMockResponse();
 
-      await controller.logout(user, res as any);
+      await controller.logout(req as any, res as any);
+
+      expect(mockAuthService.logoutByRefreshToken).not.toHaveBeenCalled();
+      expect(res.clearCookie).toHaveBeenCalledWith('refreshToken', expect.anything());
+    });
+
+    it('should clear refreshToken cookie with correct options', async () => {
+      const req = { cookies: { refreshToken: 'valid-refresh-token' } };
+      const res = createMockResponse();
+
+      await controller.logout(req as any, res as any);
 
       expect(res.clearCookie).toHaveBeenCalledWith(
         'refreshToken',
