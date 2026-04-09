@@ -96,7 +96,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días en ms
+      // Session cookie (no maxAge) — eliminated when browser is closed
       path: '/api/auth',
     });
 
@@ -137,9 +137,8 @@ export class AuthController {
   @ApiOperation({
     summary: 'Cerrar sesión',
     description:
-      'Invalida el refresh token y limpia la cookie. Requiere autenticación JWT.',
+      'Invalida el refresh token y limpia la cookie.',
   })
-  @ApiBearerAuth()
   @ApiResponse({
     status: 200,
     description: 'Sesión cerrada exitosamente',
@@ -149,17 +148,16 @@ export class AuthController {
       },
     },
   })
-  @ApiResponse({
-    status: 401,
-    description: 'No autorizado - token de acceso inválido o faltante',
-  })
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
   async logout(
-    @CurrentUser() user: { id: string },
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    await this.authService.logout(user.id);
+    const refreshToken = req.cookies?.refreshToken as string | undefined;
+
+    if (refreshToken) {
+      await this.authService.logoutByRefreshToken(refreshToken);
+    }
 
     // Limpiar cookie
     res.clearCookie('refreshToken', {

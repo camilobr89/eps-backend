@@ -125,6 +125,16 @@ export class AuthService {
     this.logger.log(`User ${userId} logged out`);
   }
 
+  async logoutByRefreshToken(refreshToken: string) {
+    try {
+      const payload = this.jwtService.verify<{ sub: string }>(refreshToken);
+      await this.redis.del(`refresh:${payload.sub}`);
+      this.logger.log(`User ${payload.sub} logged out via refresh token`);
+    } catch {
+      // Token invalid or expired — nothing to revoke
+    }
+  }
+
   async updatePreferences(userId: string, dto: UpdateUserPreferencesDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
