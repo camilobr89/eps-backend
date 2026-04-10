@@ -25,6 +25,7 @@ import { LoginDto } from './dto/login.dto';
 import { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { AUTH_SESSION_TTL_MS } from './auth.constants';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -96,7 +97,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      // Session cookie (no maxAge) — eliminated when browser is closed
+      maxAge: AUTH_SESSION_TTL_MS,
       path: '/api/auth',
     });
 

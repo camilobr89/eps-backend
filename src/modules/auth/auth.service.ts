@@ -12,6 +12,7 @@ import { RedisService } from '../../common/redis/redis.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateUserPreferencesDto } from './dto/update-user-preferences.dto';
+import { AUTH_SESSION_TTL_SECONDS } from './auth.constants';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +23,15 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly redis: RedisService,
   ) {}
+
+  private getAccessTokenTtlSeconds(expiresAt?: number): number {
+    if (!expiresAt) {
+      return AUTH_SESSION_TTL_SECONDS;
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    return Math.max(expiresAt - now, 1);
+  }
 
   async register(dto: RegisterDto) {
     const existingUser = await this.prisma.user.findUnique({
@@ -78,16 +88,20 @@ export class AuthService {
     const payload = { sub: user.id, email: user.email };
 
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: '1h',
+      expiresIn: AUTH_SESSION_TTL_SECONDS,
     });
 
     const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: '7d',
+      expiresIn: AUTH_SESSION_TTL_SECONDS,
     });
 
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
-    const ttl = 7 * 24 * 60 * 60;
-    await this.redis.set(`refresh:${user.id}`, refreshTokenHash, 'EX', ttl);
+    await this.redis.set(
+      `refresh:${user.id}`,
+      refreshTokenHash,
+      'EX',
+      AUTH_SESSION_TTL_SECONDS,
+    );
 
     this.logger.log(`User ${user.email} logged in`);
 
@@ -95,7 +109,7 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string) {
-    let payload: { sub: string; email: string };
+    let payload: { sub: string; email: string; exp: number };
     try {
       payload = this.jwtService.verify(refreshToken);
     } catch {
@@ -112,9 +126,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
+    const accessTokenTtlSeconds = this.getAccessTokenTtlSeconds(payload.exp);
     const accessToken = this.jwtService.sign(
       { sub: payload.sub, email: payload.email },
-      { expiresIn: '1h' },
+      { expiresIn: accessTokenTtlSeconds },
     );
 
     return { accessToken };
