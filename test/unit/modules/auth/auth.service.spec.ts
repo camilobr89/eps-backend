@@ -8,6 +8,8 @@ import { RedisService } from '@/common/redis/redis.service';
 
 jest.mock('bcrypt');
 
+const AUTH_SESSION_TTL_SECONDS = 30 * 60;
+
 const mockPrismaService = {
   user: {
     findUnique: jest.fn(),
@@ -132,15 +134,15 @@ describe('AuthService', () => {
       expect(mockJwtService.sign).toHaveBeenCalledTimes(2);
       expect(mockJwtService.sign).toHaveBeenCalledWith(
         { sub: 'uuid-1', email: 'test@example.com' },
-        { expiresIn: '1h' },
+        { expiresIn: AUTH_SESSION_TTL_SECONDS },
       );
       expect(mockJwtService.sign).toHaveBeenCalledWith(
         { sub: 'uuid-1', email: 'test@example.com' },
-        { expiresIn: '7d' },
+        { expiresIn: AUTH_SESSION_TTL_SECONDS },
       );
     });
 
-    it('should store refresh token hash in Redis with 7-day TTL', async () => {
+    it('should store refresh token hash in Redis with session TTL', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-refresh');
@@ -155,7 +157,7 @@ describe('AuthService', () => {
         'refresh:uuid-1',
         'hashed-refresh',
         'EX',
-        7 * 24 * 60 * 60,
+        AUTH_SESSION_TTL_SECONDS,
       );
     });
 
@@ -194,6 +196,7 @@ describe('AuthService', () => {
       mockJwtService.verify.mockReturnValue({
         sub: 'uuid-1',
         email: 'test@example.com',
+        exp: Math.floor(Date.now() / 1000) + AUTH_SESSION_TTL_SECONDS,
       });
       mockRedisService.get.mockResolvedValue('stored-hash');
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
@@ -206,7 +209,25 @@ describe('AuthService', () => {
       expect(mockRedisService.get).toHaveBeenCalledWith('refresh:uuid-1');
       expect(mockJwtService.sign).toHaveBeenCalledWith(
         { sub: 'uuid-1', email: 'test@example.com' },
-        { expiresIn: '1h' },
+        { expiresIn: AUTH_SESSION_TTL_SECONDS },
+      );
+    });
+
+    it('should cap refreshed access token to the remaining refresh lifetime', async () => {
+      mockJwtService.verify.mockReturnValue({
+        sub: 'uuid-1',
+        email: 'test@example.com',
+        exp: Math.floor(Date.now() / 1000) + 45,
+      });
+      mockRedisService.get.mockResolvedValue('stored-hash');
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      mockJwtService.sign.mockReturnValue('new-access-token');
+
+      await service.refresh('valid-refresh-token');
+
+      expect(mockJwtService.sign).toHaveBeenCalledWith(
+        { sub: 'uuid-1', email: 'test@example.com' },
+        { expiresIn: 45 },
       );
     });
 

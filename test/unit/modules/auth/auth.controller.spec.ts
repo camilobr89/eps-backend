@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from '@/modules/auth/auth.controller';
 import { AuthService } from '@/modules/auth/auth.service';
 
+const AUTH_SESSION_TTL_MS = 30 * 60 * 1000;
+
 interface MockResponse {
   cookie: jest.Mock;
   clearCookie: jest.Mock;
@@ -77,7 +79,7 @@ describe('AuthController', () => {
       expect(result).toEqual({ accessToken: 'access-token' });
     });
 
-    it('should set refreshToken as httpOnly session cookie', async () => {
+    it('should set refreshToken as httpOnly cookie with session TTL', async () => {
       mockAuthService.login.mockResolvedValue({
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
@@ -93,10 +95,10 @@ describe('AuthController', () => {
         expect.objectContaining({
           httpOnly: true,
           sameSite: 'strict',
+          maxAge: AUTH_SESSION_TTL_MS,
           path: '/api/auth',
         }),
       );
-      expect(cookieOptions).not.toHaveProperty('maxAge');
       expect(cookieOptions).not.toHaveProperty('expires');
     });
   });
