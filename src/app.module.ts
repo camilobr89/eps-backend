@@ -31,6 +31,12 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
       connection: {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT || '6379', 10),
+        maxRetriesPerRequest: null,
+        reconnectOnError: (err) => {
+          // Force reconnect when hitting a read-only replica so BullMQ
+          // always lands on the primary node.
+          return err.message.includes('READONLY');
+        },
       },
     }),
     HealthModule,

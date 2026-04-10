@@ -12,6 +12,12 @@ import { OcrModule } from './workers/ocr/ocr.module';
       connection: {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT || '6379', 10),
+        maxRetriesPerRequest: null,
+        reconnectOnError: (err) => {
+          // Force reconnect when hitting a read-only replica so BullMQ
+          // always lands on the primary node.
+          return err.message.includes('READONLY');
+        },
       },
     }),
     OcrModule,
