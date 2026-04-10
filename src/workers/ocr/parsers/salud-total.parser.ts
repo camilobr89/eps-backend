@@ -352,8 +352,10 @@ export class SaludTotalParser implements IEPSParser {
     // codes (4-5 digits, e.g. 8121). The optional (CMD X)- prefix is stripped
     // from the captured name. Order numbers (e.g. 33719-2555301849) are not
     // matched because those digits are followed by '-' not whitespace.
+    // Only horizontal whitespace (space/tab) is used between tokens to prevent
+    // matching across line boundaries.
     const regex =
-      /(\d{4,10})\s+(\d{1,3})\s+(?:\([^)]{1,30}\)-\s*)?([^\n]{5,200})(?=\n|$)/gi;
+      /(\d{4,10})[ \t]+(\d{1,3})[ \t]+(?:\([^)]{1,30}\)-[ \t]*)?([^\n]{5,200})(?=\n|$)/gi;
     let match: RegExpExecArray | null;
 
     while ((match = regex.exec(text)) !== null) {

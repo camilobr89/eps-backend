@@ -53,12 +53,15 @@ export class OcrProcessor extends WorkerHost {
       let confidence = 0;
 
       try {
+        this.logger.log(
+          `Running parser for authorization ${authorizationId} (${rawText.length} chars)`,
+        );
         const parseResult = this.parserRegistry.parseDocument(rawText);
         parserUsed = parseResult.parserUsed;
         confidence = parseResult.confidence;
 
         this.logger.log(
-          `Parser '${parserUsed}' completed with confidence ${confidence}`,
+          `Parser '${parserUsed}' completed with confidence ${confidence} for authorization ${authorizationId}`,
         );
 
         // 6. Guardar datos estructurados en la autorización
@@ -68,12 +71,19 @@ export class OcrProcessor extends WorkerHost {
           confidence,
           parserUsed,
         );
+
+        this.logger.log(
+          `Structured data saved for authorization ${authorizationId}`,
+        );
       } catch (parseError) {
         // Si el parser falla, no marcamos como failed
         const msg =
           parseError instanceof Error ? parseError.message : String(parseError);
-        this.logger.warn(
-          `Parser failed: ${msg}. Document will require manual review.`,
+        const stack =
+          parseError instanceof Error ? parseError.stack : undefined;
+        this.logger.error(
+          `Parser/persist failed for authorization ${authorizationId}: ${msg}`,
+          stack,
         );
       }
 
