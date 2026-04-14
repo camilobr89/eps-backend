@@ -41,6 +41,9 @@ export class OcrProcessor extends WorkerHost {
 
       // 3. Extraer texto
       const rawText = await this.tesseract.extractText(fileBuffer);
+      this.logger.log(
+        `Raw text sample (first 200 chars): ${rawText.substring(0, 200).replace(/\n/g, ' ')}`,
+      );
 
       // 4. Guardar texto crudo
       await this.prisma.authorization.update({
@@ -54,9 +57,15 @@ export class OcrProcessor extends WorkerHost {
 
       try {
         this.logger.log(
+          `Parser registry available: ${this.parserRegistry ? 'yes' : 'no'}`,
+        );
+        this.logger.log(
           `Running parser for authorization ${authorizationId} (${rawText.length} chars)`,
         );
         const parseResult = this.parserRegistry.parseDocument(rawText);
+        this.logger.log(
+          `Parse result: parserUsed=${parseResult.parserUsed}, confidence=${parseResult.confidence}, data keys=${Object.keys(parseResult.data).length}`,
+        );
         parserUsed = parseResult.parserUsed;
         confidence = parseResult.confidence;
 
@@ -108,6 +117,9 @@ export class OcrProcessor extends WorkerHost {
     confidence: number,
     parserUsed: string,
   ) {
+    this.logger.log(
+      `saveStructuredData called with confidence=${confidence}, parserUsed=${parserUsed}, data keys=${Object.keys(data).length}`,
+    );
     // Mapeo: campo del parser → campo de Prisma + límite
     const fieldMap: Array<[keyof OrdenDireccionamiento, string, number?]> = [
       ['tipoDocumento', 'documentType', 50],
@@ -149,6 +161,9 @@ export class OcrProcessor extends WorkerHost {
       where: { id: authorizationId },
       data: updateData,
     });
+    this.logger.log(
+      `Authorization updated with ${Object.keys(updateData).length} fields`,
+    );
 
     if (data.servicios && data.servicios.length > 0) {
       for (const servicio of data.servicios) {

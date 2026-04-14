@@ -1,4 +1,4 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Module, OnModuleInit, Logger } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { OcrProcessor } from './ocr.processor';
 import { TesseractService } from './services/tesseract.service';
@@ -11,10 +11,14 @@ import { GenericParser } from './parsers/generic.parser';
   providers: [OcrProcessor, TesseractService, EPSParserRegistry],
 })
 export class OcrModule implements OnModuleInit {
+  private readonly logger = new Logger(OcrModule.name);
+
   constructor(private readonly parserRegistry: EPSParserRegistry) {}
 
   onModuleInit() {
+    this.logger.log('OcrModule initializing, registering parsers...');
     this.parserRegistry.register(new SaludTotalParser());
     this.parserRegistry.register(new GenericParser());
+    this.logger.log('OcrModule initialization complete');
   }
 }
