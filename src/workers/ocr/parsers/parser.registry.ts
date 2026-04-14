@@ -25,6 +25,9 @@ export class EPSParserRegistry {
   }
 
   parseDocument(rawText: string): ParseResult {
+    this.logger.log(
+      `parseDocument called with ${rawText.length} chars, sample: ${rawText.substring(0, 100).replace(/\n/g, ' ')}`,
+    );
     // Intentar parsers específicos
     const specificParser = this.parsers.find((p) => p.canParse(rawText));
 
