@@ -5,11 +5,27 @@ import { Resend } from 'resend';
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
   private readonly resend: Resend;
+  private readonly fromAddress: string;
 
   constructor() {
+    if (!process.env.RESEND_API_KEY) {
+      this.logger.warn('RESEND_API_KEY is not set. Emails will not be sent.');
+    }
     this.resend = new Resend(
-      process.env.RESEND_API_KEY || 're_He7K5qUc_H6PpjXxzTKGPrZ3Q2SErrqnF',
+      process.env.RESEND_API_KEY || 're_test_placeholder',
     );
+    this.fromAddress =
+      process.env.RESEND_FROM_EMAIL ||
+      'EPS Notificaciones <onboarding@resend.dev>';
+
+    if (this.fromAddress.includes('onboarding@resend.dev')) {
+      this.logger.warn(
+        'Using Resend testing domain (onboarding@resend.dev). ' +
+          'Emails will ONLY be delivered to the Resend account owner. ' +
+          'For production, verify a custom domain at https://resend.com/domains ' +
+          'and set RESEND_FROM_EMAIL in your .env file.',
+      );
+    }
   }
 
   async sendAuthorizationExpirationReminder(
@@ -100,7 +116,7 @@ export class EmailService {
       `;
 
       const result = await this.resend.emails.send({
-        from: 'EPS Notificaciones <onboarding@resend.dev>',
+        from: this.fromAddress,
         to,
         subject,
         html,
@@ -112,7 +128,10 @@ export class EmailService {
       this.logger.debug(`Resend response: ${JSON.stringify(result)}`);
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send email to ${to}:`, error);
+      this.logger.error(
+        `Failed to send authorization expiration email to ${to}:`,
+        this.formatResendError(error),
+      );
       return false;
     }
   }
@@ -216,7 +235,7 @@ export class EmailService {
       `;
 
       const result = await this.resend.emails.send({
-        from: 'EPS Notificaciones <onboarding@resend.dev>',
+        from: this.fromAddress,
         to,
         subject,
         html,
@@ -228,7 +247,10 @@ export class EmailService {
       this.logger.debug(`Resend response: ${JSON.stringify(result)}`);
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send appointment email to ${to}:`, error);
+      this.logger.error(
+        `Failed to send appointment email to ${to}:`,
+        this.formatResendError(error),
+      );
       return false;
     }
   }
@@ -338,7 +360,7 @@ export class EmailService {
       `;
 
       const result = await this.resend.emails.send({
-        from: 'EPS Notificaciones <onboarding@resend.dev>',
+        from: this.fromAddress,
         to,
         subject,
         html,
@@ -350,8 +372,26 @@ export class EmailService {
       this.logger.debug(`Resend response: ${JSON.stringify(result)}`);
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send OCR email to ${to}:`, error);
+      this.logger.error(
+        `Failed to send OCR email to ${to}:`,
+        this.formatResendError(error),
+      );
       return false;
     }
+  }
+
+  private formatResendError(error: unknown): string {
+    if (error instanceof Error) {
+      const resendErr = error as {
+        statusCode?: number;
+        message?: string;
+        name?: string;
+      };
+      if (resendErr.statusCode) {
+        return `[${resendErr.statusCode}] ${resendErr.name || 'Error'}: ${resendErr.message}`;
+      }
+      return error.message;
+    }
+    return String(error);
   }
 }
