@@ -71,9 +71,9 @@ export class NotificationTriggerService {
           'es-CO',
           { hour: '2-digit', minute: '2-digit' },
         ),
-        location: appointment.location || undefined,
-        doctorName: appointment.doctorName || undefined,
-        specialty: appointment.specialty || undefined,
+        location: appointment.location ?? undefined,
+        doctorName: appointment.doctorName ?? undefined,
+        specialty: appointment.specialty ?? undefined,
         familyMemberName: member.fullName,
         relatedEntityType: 'appointment',
         relatedEntityId: appointment.id,
@@ -108,7 +108,7 @@ export class NotificationTriggerService {
       {
         title: `Autorización por vencer en ${daysUntil} día(s)`,
         message: `La autorización ${authorization.requestNumber || 'N/A'} vence el ${authorization.expirationDate.toLocaleDateString('es-CO')}. Por favor agenda una cita.`,
-        authorizationNumber: authorization.requestNumber || undefined,
+        authorizationNumber: authorization.requestNumber ?? undefined,
         expirationDate:
           authorization.expirationDate.toLocaleDateString('es-CO'),
         daysRemaining: daysUntil,

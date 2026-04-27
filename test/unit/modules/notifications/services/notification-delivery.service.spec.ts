@@ -410,6 +410,52 @@ describe('NotificationDeliveryService', () => {
       });
       expect(result.success).toBe(false);
     });
+
+    it('should catch and log unexpected errors', async () => {
+      const mockUser = {
+        id: userId,
+        email: 'test@example.com',
+        fullName: 'Test User',
+        emailNotifications: true,
+      };
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.notification.create.mockRejectedValue(
+        new Error('Database error'),
+      );
+
+      const result = await service.sendNotification(userId, type, data);
+
+      expect(result.success).toBe(false);
+    });
+
+    it('should handle non-Error throws from email service', async () => {
+      const mockUser = {
+        id: userId,
+        email: 'test@example.com',
+        fullName: 'Test User',
+        emailNotifications: true,
+      };
+      const mockNotification = {
+        id: 'notif-456',
+        userId,
+        title: data.title,
+        message: data.message,
+        type: NotificationType.expiration_warning,
+        deliveryMethod: DeliveryMethod.email,
+        emailSent: false,
+        emailError: null,
+      };
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.notification.create.mockResolvedValue(mockNotification);
+      mockPrismaService.notification.update.mockResolvedValue({});
+      mockEmailService.sendAuthorizationExpirationReminder.mockRejectedValue(
+        'Connection refused',
+      );
+
+      const result = await service.sendNotification(userId, type, data);
+
+      expect(result.success).toBe(false);
+    });
   });
 
   describe('getDeliveryStats', () => {
