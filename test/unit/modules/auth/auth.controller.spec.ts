@@ -88,7 +88,10 @@ describe('AuthController', () => {
 
       await controller.login(loginDto, res as any);
 
-      const cookieOptions = (res.cookie as jest.Mock).mock.calls[0][2] as Record<string, unknown>;
+      const cookieOptions = res.cookie.mock.calls[0][2] as Record<
+        string,
+        unknown
+      >;
       expect(res.cookie).toHaveBeenCalledWith(
         'refreshToken',
         'refresh-token',
@@ -149,7 +152,9 @@ describe('AuthController', () => {
 
       const result = await controller.logout(req as any, res as any);
 
-      expect(mockAuthService.logoutByRefreshToken).toHaveBeenCalledWith('valid-refresh-token');
+      expect(mockAuthService.logoutByRefreshToken).toHaveBeenCalledWith(
+        'valid-refresh-token',
+      );
       expect(result).toEqual({ message: 'Logged out successfully' });
     });
 
@@ -160,7 +165,10 @@ describe('AuthController', () => {
       await controller.logout(req as any, res as any);
 
       expect(mockAuthService.logoutByRefreshToken).not.toHaveBeenCalled();
-      expect(res.clearCookie).toHaveBeenCalledWith('refreshToken', expect.anything());
+      expect(res.clearCookie).toHaveBeenCalledWith(
+        'refreshToken',
+        expect.anything(),
+      );
     });
 
     it('should clear refreshToken cookie with correct options', async () => {

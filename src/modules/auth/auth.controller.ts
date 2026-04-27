@@ -137,8 +137,7 @@ export class AuthController {
   @Post('logout')
   @ApiOperation({
     summary: 'Cerrar sesión',
-    description:
-      'Invalida el refresh token y limpia la cookie.',
+    description: 'Invalida el refresh token y limpia la cookie.',
   })
   @ApiResponse({
     status: 200,
@@ -150,10 +149,7 @@ export class AuthController {
     },
   })
   @HttpCode(HttpStatus.OK)
-  async logout(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = req.cookies?.refreshToken as string | undefined;
 
     if (refreshToken) {

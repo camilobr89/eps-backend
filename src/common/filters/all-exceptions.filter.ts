@@ -117,7 +117,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private isExpressError(exception: unknown): boolean {
     if (typeof exception !== 'object' || exception === null) return false;
     const err = exception as { status?: unknown; type?: unknown };
-    return typeof err.status === 'number' && err.status >= 400 && err.status < 600;
+    return (
+      typeof err.status === 'number' && err.status >= 400 && err.status < 600
+    );
   }
 
   private isPrismaError(
