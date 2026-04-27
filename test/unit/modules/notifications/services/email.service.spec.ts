@@ -44,6 +44,31 @@ describe('EmailService', () => {
     expect(service).toBeDefined();
   });
 
+  it('should not show onboarding warning when custom from address is set', async () => {
+    const prevFrom = process.env.RESEND_FROM_EMAIL;
+    const prevApiKey = process.env.RESEND_API_KEY;
+    process.env.RESEND_FROM_EMAIL = 'EPS <notificaciones@mi-dominio.com>';
+    process.env.RESEND_API_KEY = 're_test_custom_key';
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [EmailService],
+    }).compile();
+
+    const customService = module.get<EmailService>(EmailService);
+    expect(customService).toBeDefined();
+
+    if (prevFrom !== undefined) {
+      process.env.RESEND_FROM_EMAIL = prevFrom;
+    } else {
+      delete process.env.RESEND_FROM_EMAIL;
+    }
+    if (prevApiKey !== undefined) {
+      process.env.RESEND_API_KEY = prevApiKey;
+    } else {
+      delete process.env.RESEND_API_KEY;
+    }
+  });
+
   describe('sendAuthorizationExpirationReminder', () => {
     const to = 'test@example.com';
     const data = buildEmailExpirationWarningData({
@@ -78,6 +103,33 @@ describe('EmailService', () => {
       );
 
       expect(mockResendInstance.emails.send).toHaveBeenCalled();
+      expect(result).toBe(false);
+    });
+
+    it('should handle Resend API error with statusCode', async () => {
+      const resendError = Object.assign(new Error('Forbidden'), {
+        statusCode: 403,
+        name: 'validation_error',
+        message: 'The from address does not match a verified domain',
+      });
+      mockResendInstance.emails.send.mockRejectedValue(resendError);
+
+      const result = await service.sendAuthorizationExpirationReminder(
+        to,
+        data,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('should handle non-Error rejection', async () => {
+      mockResendInstance.emails.send.mockRejectedValue('Network timeout');
+
+      const result = await service.sendAuthorizationExpirationReminder(
+        to,
+        data,
+      );
+
       expect(result).toBe(false);
     });
 
