@@ -2,6 +2,21 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { AuthorizationsService } from '@/modules/authorizations/authorizations.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { NotificationTriggerService } from '@/modules/notifications/services/notification-trigger.service';
+
+const mockNotificationTrigger = {
+  trySendAppointmentReminder: jest.fn().mockResolvedValue(false),
+  trySendAuthorizationExpiryWarning: jest.fn().mockResolvedValue(false),
+  sendRemindersForUser: jest.fn().mockResolvedValue({
+    appointmentReminders: 0,
+    authorizationWarnings: 0,
+  }),
+  sendAllPendingReminders: jest.fn().mockResolvedValue({
+    usersProcessed: 0,
+    appointmentReminders: 0,
+    authorizationWarnings: 0,
+  }),
+};
 
 const mockPrisma = {
   authorization: {
@@ -61,6 +76,10 @@ describe('AuthorizationsService', () => {
       providers: [
         AuthorizationsService,
         { provide: PrismaService, useValue: mockPrisma },
+        {
+          provide: NotificationTriggerService,
+          useValue: mockNotificationTrigger,
+        },
       ],
     }).compile();
 

@@ -4,12 +4,19 @@ import { CreateAuthorizationDto } from './dto/create-authorization.dto';
 import { UpdateAuthorizationDto } from './dto/update-authorization.dto';
 import { FilterAuthorizationDto } from './dto/filter-authorization.dto';
 import { createPaginatedResponse } from '../../common/dto/paginated-response.dto';
+import { NotificationTriggerService } from '../notifications/services/notification-trigger.service';
 import { Prisma } from '.prisma/client';
 
 // Includes reutilizables para queries
 const AUTHORIZATION_INCLUDES = {
   services: true,
-  familyMember: { select: { id: true, fullName: true } },
+  familyMember: {
+    select: {
+      id: true,
+      fullName: true,
+      user: { select: { id: true, emailNotifications: true } },
+    },
+  },
   epsProvider: { select: { id: true, name: true, code: true } },
 } satisfies Prisma.AuthorizationInclude;
 
@@ -20,14 +27,17 @@ const OWNERSHIP_INCLUDES = {
 
 @Injectable()
 export class AuthorizationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationTrigger: NotificationTriggerService,
+  ) {}
 
   async create(userId: string, dto: CreateAuthorizationDto) {
     await this.verifyFamilyMemberOwnership(dto.familyMemberId, userId);
 
     const { services, familyMemberId, ...fields } = dto;
 
-    return this.prisma.authorization.create({
+    const authorization = await this.prisma.authorization.create({
       data: {
         ...this.mapDtoToData(fields),
         familyMemberId,
@@ -36,6 +46,12 @@ export class AuthorizationsService {
       },
       include: AUTHORIZATION_INCLUDES,
     });
+
+    void this.notificationTrigger.trySendAuthorizationExpiryWarning(
+      authorization,
+    );
+
+    return authorization;
   }
 
   async findAll(userId: string, filters: FilterAuthorizationDto) {
@@ -91,7 +107,7 @@ export class AuthorizationsService {
 
     const { services, ...fields } = dto;
 
-    return this.prisma.authorization.update({
+    const authorization = await this.prisma.authorization.update({
       where: { id },
       data: {
         ...this.mapDtoToData(fields),
@@ -101,6 +117,12 @@ export class AuthorizationsService {
       },
       include: AUTHORIZATION_INCLUDES,
     });
+
+    void this.notificationTrigger.trySendAuthorizationExpiryWarning(
+      authorization,
+    );
+
+    return authorization;
   }
 
   async remove(id: string, userId: string) {
