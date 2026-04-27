@@ -1,6 +1,6 @@
 import { IsOptional, IsBoolean } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
 
 export class FilterNotificationsDto {
   @ApiPropertyOptional({
@@ -11,7 +11,7 @@ export class FilterNotificationsDto {
   @Transform(({ value }) => {
     if (value === 'true') return true;
     if (value === 'false') return false;
-    return value;
+    return value as boolean;
   })
   @IsBoolean()
   read?: boolean;

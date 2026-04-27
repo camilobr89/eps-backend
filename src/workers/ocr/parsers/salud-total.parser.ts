@@ -304,10 +304,7 @@ export class SaludTotalParser implements IEPSParser {
    */
   private extractPorcentaje(text: string): number {
     // normal layout only — reversed layout has empty porcentaje
-    return this.extractNumber(
-      text,
-      /Porcentaje\s*:\s*(\d[\d.,]*)(?:\s|\n|$)/i,
-    );
+    return this.extractNumber(text, /Porcentaje\s*:\s*(\d[\d.,]*)(?:\s|\n|$)/i);
   }
 
   /**
