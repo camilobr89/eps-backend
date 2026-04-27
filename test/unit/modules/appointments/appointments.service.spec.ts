@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { AppointmentsService } from '@/modules/appointments/appointments.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { NotificationTriggerService } from '@/modules/notifications/services/notification-trigger.service';
 import {
   createMockPrismaService,
   createMockAppointment,
@@ -14,6 +15,20 @@ import {
 } from '../../../utils/test-data-builders';
 
 const mockPrisma = createMockPrismaService();
+
+const mockNotificationTrigger = {
+  trySendAppointmentReminder: jest.fn().mockResolvedValue(false),
+  trySendAuthorizationExpiryWarning: jest.fn().mockResolvedValue(false),
+  sendRemindersForUser: jest.fn().mockResolvedValue({
+    appointmentReminders: 0,
+    authorizationWarnings: 0,
+  }),
+  sendAllPendingReminders: jest.fn().mockResolvedValue({
+    usersProcessed: 0,
+    appointmentReminders: 0,
+    authorizationWarnings: 0,
+  }),
+};
 
 const { USER_ID, MEMBER_ID, APPOINTMENT_ID, AUTHORIZATION_ID } = TEST_CONSTANTS;
 const userId = USER_ID;
@@ -60,6 +75,10 @@ describe('AppointmentsService', () => {
       providers: [
         AppointmentsService,
         { provide: PrismaService, useValue: mockPrisma },
+        {
+          provide: NotificationTriggerService,
+          useValue: mockNotificationTrigger,
+        },
       ],
     }).compile();
 

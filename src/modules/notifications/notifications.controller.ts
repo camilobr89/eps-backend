@@ -22,6 +22,7 @@ import {
   NotificationDeliveryService,
   NotificationData,
 } from './services/notification-delivery.service';
+import { NotificationTriggerService } from './services/notification-trigger.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { FilterNotificationsDto } from './dto/filter-notifications.dto';
@@ -37,6 +38,7 @@ export class NotificationsController {
   constructor(
     private readonly notificationsService: NotificationsService,
     private readonly notificationDeliveryService: NotificationDeliveryService,
+    private readonly notificationTrigger: NotificationTriggerService,
   ) {}
 
   @Get()
@@ -228,5 +230,48 @@ export class NotificationsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   markAllAsRead(@CurrentUser() user: { id: string }) {
     return this.notificationsService.markAllAsRead(user.id);
+  }
+
+  @Post('send-reminders')
+  @ApiOperation({
+    summary: 'Send pending reminders for the current user',
+    description:
+      'Checks upcoming appointments (1-3 days) and expiring authorizations (1-7 days) and sends notifications.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Reminders sent successfully',
+    schema: {
+      example: {
+        appointmentReminders: 1,
+        authorizationWarnings: 0,
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  sendReminders(@CurrentUser() user: { id: string }) {
+    return this.notificationTrigger.sendRemindersForUser(user.id);
+  }
+
+  @Post('send-reminders/all')
+  @ApiOperation({
+    summary: 'Send all pending reminders for all active users',
+    description:
+      'Scans all active users with email notifications enabled and sends pending reminders.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'All reminders sent successfully',
+    schema: {
+      example: {
+        usersProcessed: 5,
+        appointmentReminders: 3,
+        authorizationWarnings: 2,
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  sendAllReminders() {
+    return this.notificationTrigger.sendAllPendingReminders();
   }
 }

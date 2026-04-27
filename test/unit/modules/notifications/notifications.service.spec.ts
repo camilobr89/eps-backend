@@ -91,18 +91,18 @@ describe('NotificationsService', () => {
       });
     });
 
-    it('should handle pagination correctly', async () => {
-      const customPagination: PaginationQueryDto = { page: 2, limit: 10 };
+    it('should handle pagination with default page and limit', async () => {
+      const emptyPagination: PaginationQueryDto = {};
       mockPrismaService.notification.findMany.mockResolvedValue([]);
       mockPrismaService.notification.count.mockResolvedValue(0);
 
-      await service.findAll(userId, filters, customPagination);
+      await service.findAll(userId, filters, emptyPagination);
 
       expect(mockPrismaService.notification.findMany).toHaveBeenCalledWith({
         where: { userId },
         orderBy: { sentAt: 'desc' },
-        skip: 10,
-        take: 10,
+        skip: 0,
+        take: 20,
       });
     });
   });
@@ -265,6 +265,18 @@ describe('NotificationsService', () => {
 
       // Check that the gte date is approximately correct (within 1 second)
       const gteDate = whereClause.sentAt.gte;
+      expect(gteDate.getTime()).toBeCloseTo(expectedDate.getTime(), -1000);
+    });
+
+    it('should default hours to 24', async () => {
+      mockPrismaService.notification.findFirst.mockResolvedValue(null);
+
+      await service.hasRecentNotification(userId, type, relatedEntityId);
+
+      const call = mockPrismaService.notification.findFirst.mock.calls[0];
+      const whereClause = call[0].where;
+      const gteDate = whereClause.sentAt.gte;
+      const expectedDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
       expect(gteDate.getTime()).toBeCloseTo(expectedDate.getTime(), -1000);
     });
   });

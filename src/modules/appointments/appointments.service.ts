@@ -4,6 +4,7 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { FilterAppointmentDto } from './dto/filter-appointment.dto';
 import { createPaginatedResponse } from '../../common/dto/paginated-response.dto';
+import { NotificationTriggerService } from '../notifications/services/notification-trigger.service';
 import { Prisma } from '.prisma/client';
 
 const APPOINTMENT_INCLUDES = {
@@ -23,7 +24,10 @@ const APPOINTMENT_INCLUDES = {
 
 @Injectable()
 export class AppointmentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationTrigger: NotificationTriggerService,
+  ) {}
 
   async create(userId: string, dto: CreateAppointmentDto) {
     await this.verifyFamilyMemberOwnership(dto.familyMemberId, userId);
@@ -51,6 +55,8 @@ export class AppointmentsService {
     if (dto.authorizationId) {
       await this.updateAuthorizationStatus(dto.authorizationId, 'scheduled');
     }
+
+    void this.notificationTrigger.trySendAppointmentReminder(appointment);
 
     return appointment;
   }
@@ -128,7 +134,7 @@ export class AppointmentsService {
       await this.verifyAuthorizationOwnership(dto.authorizationId, userId);
     }
 
-    return this.prisma.appointment.update({
+    const appointment = await this.prisma.appointment.update({
       where: { id },
       data: {
         familyMemberId: dto.familyMemberId,
@@ -145,6 +151,10 @@ export class AppointmentsService {
       },
       include: APPOINTMENT_INCLUDES,
     });
+
+    void this.notificationTrigger.trySendAppointmentReminder(appointment);
+
+    return appointment;
   }
 
   async remove(id: string, userId: string) {
